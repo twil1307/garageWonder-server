@@ -2,7 +2,7 @@
 
 ###React
 [Following this rule from Airbnb](https://github.com/airbnb/javascript/tree/master/react)
-1. Line spliting between state and function/return
+1. Line splitting between state and function/return
 Eg: 
 `const Component = () => {`
 `   const [count, setCount] = useState(0)`
