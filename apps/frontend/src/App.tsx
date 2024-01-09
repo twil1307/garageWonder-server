@@ -1,14 +1,15 @@
-import { Button, NextUIProvider } from "@nextui-org/react";
+import { NextUIProvider } from "@nextui-org/react";
+import { Outlet, useNavigate } from "react-router-dom";
 
 function App() {
+    const navigate = useNavigate();
+
     return (
-        <div className="light text-foreground bg-background">
-            <NextUIProvider>
-                <Button color="primary" className="w-6 mx-auto">
-                    Button
-                </Button>
-            </NextUIProvider>
-        </div>
+        <NextUIProvider navigate={navigate}>
+            <div className="light text-foreground bg-background">
+                <Outlet />
+            </div>
+        </NextUIProvider>
     );
 }
 
