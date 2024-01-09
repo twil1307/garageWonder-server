@@ -1,17 +1,24 @@
+import { Outlet } from "react-router-dom";
 
-import "./DefaultLayout.styles.scss"
+import { BrandLogo, Header } from "@/core/ui";
+import { BecomeGaraOwnerLink, UserProfileMenu, GaraSearch } from "./ui";
 
-export type DefaultLayoutProps = {
+const DefaultLayout = () => {
+    return (
+        <div data-testid={DefaultLayout.name}>
+            <Header
+                leftContent={<BrandLogo />}
+                middleContent={<GaraSearch />}
+                rightContent={
+                    <>
+                        <BecomeGaraOwnerLink />
+                        <UserProfileMenu />
+                    </>
+                }
+            />
+            <Outlet />
+        </div>
+    );
+};
 
-}
-
-const DefaultLayout = ({}: DefaultLayoutProps) => {
-
-    return ()
-}
-
-export default DefaultLayout
-
-
-
-
+export default DefaultLayout;
