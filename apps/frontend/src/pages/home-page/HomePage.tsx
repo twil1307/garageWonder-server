@@ -1,20 +1,15 @@
-import { faFilter, faSliders } from "@fortawesome/free-solid-svg-icons";
+import { faSliders } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Button } from "@nextui-org/react";
+
+import { SortBy } from "./ui";
 
 const HomePage = () => {
     return (
         <div id="home" className="px-10">
             <div className="TopBar flex my-8">
                 <div className="basis-1/12">
-                    <Button
-                        variant="bordered"
-                        color="default"
-                        className="border-black border"
-                    >
-                        <FontAwesomeIcon icon={faFilter} />
-                        <p>Sort By</p>
-                    </Button>
+                    <SortBy />
                 </div>
                 <div className="flex-grow flex justify-center">
                     <Button color="primary" radius="full">
