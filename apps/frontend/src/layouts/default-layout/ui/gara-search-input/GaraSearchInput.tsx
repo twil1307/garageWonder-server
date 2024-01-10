@@ -1,7 +1,6 @@
 import { Input } from "@nextui-org/react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
-import clsx from "clsx";
 
 export type GaraSearchInputProps = {
     hasFocused?: boolean;
@@ -10,10 +9,10 @@ export type GaraSearchInputProps = {
 function GaraSearchInput({ hasFocused = false }: GaraSearchInputProps) {
     return (
         <Input
+            isClearable
             radius="full"
             placeholder="Search..."
-            variant="bordered"
-            isClearable
+            variant={hasFocused ? "bordered" : "flat"}
             startContent={
                 <FontAwesomeIcon
                     icon={faMagnifyingGlass}
@@ -24,10 +23,7 @@ function GaraSearchInput({ hasFocused = false }: GaraSearchInputProps) {
             }
             className="w-full h-11"
             classNames={{
-                inputWrapper: clsx(
-                    "p-0 h-full",
-                    hasFocused && "border-default-foreground",
-                ),
+                inputWrapper: "p-0 h-full",
                 input: "pl-0",
             }}
         />

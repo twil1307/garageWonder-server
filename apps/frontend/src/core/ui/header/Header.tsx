@@ -14,7 +14,12 @@ function Header({
     className,
 }: HeaderProps) {
     return (
-        <div className={clsx("h-20 flex justify-between px-10 gap-2 border-b-1", className)}>
+        <div
+            className={clsx(
+                "h-20 flex justify-between px-10 gap-2 border-b-1 sticky top-0",
+                className,
+            )}
+        >
             <div className="flex items-center justify-start h-full">
                 {leftContent}
             </div>
