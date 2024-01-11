@@ -17,6 +17,7 @@ const SortByButton = forwardRef<
             startContent={<FontAwesomeIcon icon={faFilter} />}
             ref={ref}
             {...props}
+            disableAnimation
         >
             <span>{children}</span>
         </Button>

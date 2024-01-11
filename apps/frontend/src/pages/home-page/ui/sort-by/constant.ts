@@ -2,22 +2,22 @@ import { faArrowDownWideShort, faArrowUpWideShort } from "@fortawesome/free-soli
 
 const sortByOptions = [
     {
-        key: "k1",
+        key: "latest",
         title: "Latest",
         icon: faArrowUpWideShort
     },
     {
-        key: "k2",
+        key: "oldest",
         title: "Oldest",
         icon: faArrowDownWideShort
     },
     {
-        key: "k3",
+        key: "desc",
         title: "Price Desc",
         icon: faArrowUpWideShort
     },
     {
-        key: "k4",
+        key: "asc",
         title: "Price Asc",
         icon: faArrowDownWideShort
     },
