@@ -25,7 +25,11 @@ function CategoryOption({ category }: CategoryOptionProps) {
 
     const onCategoryOptionSelect = () => {
         setFilterSearchParams(prev => {
-            prev.set("category", category.value)
+            if (prev.get("category") === category.value) {
+                prev.delete("category")
+            } else {
+                prev.set("category", category.value)
+            }
 
             return prev;
         })

@@ -12,7 +12,6 @@ export type Key = string | number
 
 function SortBy() {
     const [filterSearchParams, setFilterSearchParams] = useSearchParams();
-    // TODO: remove unnecessary state
     const selectedSortByOptionSet = useMemo(() => new Set<string>([filterSearchParams.get("sortBy") || ""]), [filterSearchParams])
     const [isSortByMenuOpen, setSortByMenuOpen] = useState<boolean>(false);
 
@@ -21,7 +20,12 @@ function SortBy() {
             const selectedKey = Array.from(key)[0] as string
             
             setFilterSearchParams(prev => {
-                prev.set("sortBy", selectedKey)
+                if (selectedKey === undefined) {
+                    prev.delete("sortBy")
+                } else {
+                    prev.set("sortBy", selectedKey)
+                }
+
                 return prev;
             })
         } 
@@ -44,7 +48,8 @@ function SortBy() {
     return (
         <Dropdown 
             classNames={{ base: "left-7"}}
-            onOpenChange={onSortByMenuOpenChange}    
+            onOpenChange={onSortByMenuOpenChange} 
+            disableAnimation   
         >
             <DropdownTrigger>
                 <SortByButton className={clsx("border capitalize", isSortByMenuOpen && "border-black")}>
