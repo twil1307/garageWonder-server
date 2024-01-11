@@ -5,18 +5,20 @@ import { faFilter } from "@fortawesome/free-solid-svg-icons";
 
 export type SortByButtonProps = React.ComponentProps<typeof Button>
 
-const SortByButton = forwardRef<HTMLButtonElement, SortByButtonProps>((props, ref) => {
+const SortByButton = forwardRef<
+    HTMLButtonElement, 
+    SortByButtonProps>
+(({ children, ...props }, ref) => {
 
     return (
         <Button
             variant="bordered"
             color="default"
-            className="border-black border"
             startContent={<FontAwesomeIcon icon={faFilter} />}
             ref={ref}
             {...props}
         >
-            <span>Sort By</span>
+            <span>{children}</span>
         </Button>
     )
 })

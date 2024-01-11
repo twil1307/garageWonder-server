@@ -8,7 +8,7 @@ const HomePage = () => {
     return (
         <div id="home" className="px-10">
             <div className="TopBar flex my-8">
-                <div className="basis-1/12">
+                <div className="">
                     <SortBy />
                 </div>
                 <div className="flex-grow flex justify-center">
