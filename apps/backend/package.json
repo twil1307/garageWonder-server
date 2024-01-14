@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "nodemon --inspect ./bin/www"
+    "start": "nodemon --experimental-modules --es-module-specifier-resolution=node ./bin/www"
   },
   "dependencies": {
     "bcrypt": "^5.1.0",
@@ -18,12 +18,14 @@
     "express": "~4.16.1",
     "http-errors": "~1.6.3",
     "jsonwebtoken": "^8.5.1",
-    "mongodb": "^5.5.0",
-    "mongoose": "^6.6.1",
+    "mongodb": "^5.9.2",
+    "mongoose": "^6.12.5",
     "morgan": "~1.9.1",
     "multer": "^1.4.5-lts.1",
     "multer-storage-cloudinary": "^4.0.0",
-    "nodemon": "^2.0.20"
+    "nodemon": "^2.0.20",
+    "qrcode": "^1.5.3",
+    "redis": "^4.6.12"
   },
   "devDependencies": {
     "eslint": "^8.56.0"

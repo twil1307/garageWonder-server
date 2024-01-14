@@ -1,6 +1,6 @@
-const AppError = require("./appError");
+import AppError from "./appError";
 
-module.exports = (err, req, res, next) => {
+export default (err, req, res, next) => {
   let error = { ...err };
 
   console.log(error);

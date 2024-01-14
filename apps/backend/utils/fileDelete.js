@@ -1,4 +1,4 @@
-const fs = require("fs").promises;
+import { promises as fs } from "fs";
 
 const deleteFiles = async (filePaths) => {
   try {
@@ -11,4 +11,4 @@ const deleteFiles = async (filePaths) => {
   }
 };
 
-module.exports = deleteFiles;
+export default deleteFiles;
