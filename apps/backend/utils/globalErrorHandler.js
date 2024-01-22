@@ -1,4 +1,4 @@
-import AppError from "./appError";
+import AppError from "./appError.js";
 
 export default (err, req, res, next) => {
   let error = { ...err };
@@ -11,7 +11,7 @@ export default (err, req, res, next) => {
   if (err.name === "JsonWebTokenError") error = handleJWTError();
   if (err.name === "TokenExpiredError") error = handleJWTExpiredError();
 
-  return res.status(error.statusCode || 500).json({ message: error.message });
+  return res.status(error.statusCode || 500).json({ message: error.message || 'Something went wrong' });
 };
 
 // handle schema validation

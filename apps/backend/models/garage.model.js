@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { extraFeeEnum } from "../enum/garage.enum";
+import { extraFeeEnum } from "../enum/garage.enum.js";
 const Schema = mongoose.Schema;
 
 const garageSchema = new Schema(
@@ -9,11 +9,6 @@ const garageSchema = new Schema(
       required: true,
       ref: "User",
     },
-    // hotelType: {
-    //   type: mongoose.Schema.Types.ObjectId,
-    //   required: true,
-    //   ref: "HotelType",
-    // },
     name: {
       type: String,
       required: [true, "Garage name is required"],
@@ -51,7 +46,7 @@ const garageSchema = new Schema(
         type: String,
         required: true,
     },
-    longtitude: {
+    longitude: {
       type: String,
       required: true,
     },
@@ -59,12 +54,13 @@ const garageSchema = new Schema(
       type: String,
       required: true,
     },
-    preprationTime: {
-        type: Number
-    },
-    opening: {
+    openAt: {
       type: String,
       required: true,
+    },
+    closeAt: {
+      type: String,
+      require: true
     },
     checkin: {
       type: String,
@@ -99,44 +95,37 @@ const garageSchema = new Schema(
       type: [mongoose.Schema.Types.ObjectId],
       ref: "Category",
     },
-    images: [
-      {
-        type: {
-          imagePath: { type: String, required: true },
-          imageType: { type: Number, required: true },
-        },
-        required: true,
-      },
-    ],
+    images: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Image",
+      default: [],
+    },
     reviews: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "Review",
     },
-    Vouchers: {
+    vouchers: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "Voucher",
       default: [],
     },
     additionalFee: [
       {
+        fee: { type: Number, default: 0 },
         type: {
-          fee: { type: Number, default: 0 },
-          feeType: {
-            type: String,
-            enum: extraFeeEnum
-          },
-        },
+          type: String
+        }
       },
     ],
     restrictCheckInDate: {
-      type: [Date],
+      type: [String],
       default: [],
     },
     rules: [
       {
         type: {
           name: { type: String, required: true },
-          shortDes: { type: String, required: true },
+          description: { type: String, required: true },
         },
       },
     ],
@@ -149,6 +138,11 @@ const garageSchema = new Schema(
         type: [mongoose.Schema.Types.ObjectId],
         ref: "Service",
         default: [],
+    },
+    additionalService: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "AdditionalService",
+      default: [],
     }
   },
   {
@@ -156,8 +150,10 @@ const garageSchema = new Schema(
   }
 );
 
-hotelSchema.path("rules").default([]);
-hotelSchema.path("additionalFee").default([]);
+garageSchema.path("rules").default([]);
+garageSchema.path("additionalFee").default([]);
 
 
-module.exports = mongoose.model("Garage", garageSchema);
+const Garage = mongoose.model("Garage", garageSchema);
+
+export default Garage;

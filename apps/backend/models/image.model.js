@@ -8,11 +8,14 @@ const imageSchema = new Schema(
       required: [true, "Image path is required"],
       unique: true,
     },
-    type: {
-        type: String,
-        required: [true, "Image type is required"],
-        unique: true,
-    }
+    // width: {
+    //   type: Number,
+    //   default: 0
+    // },
+    // heigh: {
+    //   type: Number,
+    //   default: 0
+    // }
   },
   {
     timestamps: true,
@@ -20,4 +23,6 @@ const imageSchema = new Schema(
 );
 
 
-module.exports = mongoose.model("Image", imageSchema);
+const Image = mongoose.model("Image", imageSchema);
+
+export default Image;

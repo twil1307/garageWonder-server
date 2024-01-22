@@ -1,37 +1,45 @@
 import createError from 'http-errors';
-import express, { json, urlencoded } from 'express';
+import express from 'express';
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
 import logger from 'morgan';
 import connectRedis from './config/redis.js';
+import globalErrorHandler from './utils/globalErrorHandler.js';
 
-import indexRouter from './routes/index.js';
-import usersRouter from './routes/users.js';
+import apiRouter from './routes/index.js';
+
+// Database configuration ----------------------------
+import setupDatabase from './config/database.js';
+
+
 
 var app = express();
 connectRedis();
+setupDatabase();
 
 app.use(logger('dev'));
-app.use(json());
-app.use(urlencoded({ extended: false }));
+// app.use(json());
+// app.use(urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json())
 app.use(cookieParser());
+app.use(
+  cors({
+    credentials: true,
+    origin: process.env.FRONTEND_URL ?? "http://localhost:3000",
+    optionsSuccessStatus: 200,
+  })
+);
 
-app.use('/', indexRouter);
-app.use("/users", usersRouter);
+app.use('/api', apiRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+app.use(globalErrorHandler);
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
 
 export default app;

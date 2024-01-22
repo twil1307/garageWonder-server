@@ -1,7 +1,10 @@
-require("dotenv").config();
-const cloudinary = require("cloudinary").v2;
-const multer = require("multer");
-const { CloudinaryStorage } = require("multer-storage-cloudinary");
+import dotenv from 'dotenv';
+import { v2 as cloudinary } from 'cloudinary';
+import multer from 'multer';
+import { CloudinaryStorage } from 'multer-storage-cloudinary';
+
+dotenv.config();
+
 
 // Configuration
 cloudinary.config({
@@ -10,8 +13,10 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+export const cloudinaryInst = cloudinary;
+
 // Create the Multer storage engine using the CloudinaryStorage
-const storageUser = new CloudinaryStorage({
+export const storageUser = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "User", // User folder to store the files in Cloudinary
@@ -19,36 +24,24 @@ const storageUser = new CloudinaryStorage({
   },
 });
 
-const storageHotel = new CloudinaryStorage({
+export const storeGarage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: "Hotel", // Hotel folder to store the files in Cloudinary
+    folder: "Garage", // Hotel folder to store the files in Cloudinary
     allowed_formats: ["jpg", "png", "jpeg"], // Optional array of allowed file formats
+    // transformation: [{ width: 800, height: 600}],
   },
 });
 
-const storageUserLocal = multer.diskStorage({
+const storageGarageLocal = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "public/images/users");
+    cb(null, "public/images/garages");
   },
   filename: function (req, file, cb) {
     const fileExtension = getFileExtension(file.originalname);
     cb(
       null,
-      `${req.user._id}-${file.fieldname}-${Date.now()}.${fileExtension}`
-    );
-  },
-});
-
-const storageHotelLocal = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "public/images/hotels");
-  },
-  filename: function (req, file, cb) {
-    const fileExtension = getFileExtension(file.originalname);
-    cb(
-      null,
-      `${req.user._id}-${file.fieldname}-${Date.now()}.${fileExtension}`
+      `${file.fieldname}-${Date.now()}.${fileExtension}`
     );
   },
 });
@@ -59,19 +52,9 @@ function getFileExtension(filename) {
 }
 
 // upload to online cloud
-const userImageUploader = multer({ storage: storageUser });
-const hotelImageUploader = multer({ storage: storageHotel });
+export const userImageUploader = multer({ storage: storageUser });
+export const garageImageUploader = multer({ storage: storeGarage });
 
 // upload local
-const userImageUploaderLocal = multer({ storage: storageUserLocal });
-const hotelImageUploaderLocal = multer({ storage: storageHotelLocal });
-const formDataRetrieve = multer();
-
-module.exports = {
-  cloudinary,
-  userImageUploader,
-  hotelImageUploader,
-  userImageUploaderLocal,
-  hotelImageUploaderLocal,
-  formDataRetrieve,
-};
+export const garageImageUploaderLocal = multer({ storage: storageGarageLocal });
+export const formDataRetrieve = multer();

@@ -1,12 +1,12 @@
+import dotenv from 'dotenv';
+dotenv.config();
+
 import * as User from "../models/user.model.js";
 import { hashPassword, comparePassword } from "../helper/passwordService";
 import { generateAccessToken, generateRefreshToken, expireTokens } from "../helper/jwtService";
-import dotenv from 'dotenv';
 import { verify } from "jsonwebtoken";
 import AppError from "../utils/appError";
 import catchAsync from "../utils/catchAsync";
-
-dotenv.config();
 
 export const getUser = catchAsync(async (req, res, next) => {
   const user = await findById(req.params.userId).select("-password");

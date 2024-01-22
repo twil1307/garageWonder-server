@@ -10,20 +10,23 @@ const serviceSchema = new Schema(
     },
     name: {
       type: String,
-      required: [true, "Service name is required"],
-      unique: true,
+      required: [true, "Service name is required"]
     },
     description: {
       type: String,
       required: [true, "Description required"],
     },
-    price: {
+    lowestPrice: {
       type: Number,
       required: true,
     },
-    icon: {
+    highestPrice: {
+      type: Number,
+      required: true,
+    },
+    brand: {
         type: String,
-        required: false
+        required: true
     },
     status: {
         type: Boolean,
@@ -36,4 +39,6 @@ const serviceSchema = new Schema(
 );
 
 
-module.exports = mongoose.model("Service", serviceSchema);
+const Service = mongoose.model("Service", serviceSchema);
+
+export default Service;
