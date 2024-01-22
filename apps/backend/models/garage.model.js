@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import { extraFeeEnum } from "../enum/garage.enum.js";
 const Schema = mongoose.Schema;
 
 const garageSchema = new Schema(
@@ -143,7 +142,12 @@ const garageSchema = new Schema(
       type: [mongoose.Schema.Types.ObjectId],
       ref: "AdditionalService",
       default: [],
-    }
+    },
+    staff: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "User",
+      default: []
+    },
   },
   {
     timestamps: true,

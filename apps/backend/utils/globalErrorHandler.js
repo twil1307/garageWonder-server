@@ -3,13 +3,13 @@ import AppError from "./appError.js";
 export default (err, req, res, next) => {
   let error = { ...err };
 
-  console.log(error);
-
   if (err.name === "CastError") error = handleCastErrorDB(err);
+  if (err.name === "BSONTypeError") error = handleInvalidId(err);
   if (err.code === 11000) error = handleDuplicateFieldsDB(err);
   if (err.name === "ValidationError") error = handleValidationErrorDB(err);
   if (err.name === "JsonWebTokenError") error = handleJWTError();
   if (err.name === "TokenExpiredError") error = handleJWTExpiredError();
+  if (err.name === "Error") error = err;
 
   return res.status(error.statusCode || 500).json({ message: error.message || 'Something went wrong' });
 };
@@ -34,6 +34,12 @@ const handleJWTExpiredError = () =>
 // Cast db error
 const handleCastErrorDB = (err) => {
   const message = `Invalid ${err.path}: ${err.value}.`;
+  return new AppError(message, 400);
+};
+
+// handle invalid id
+const handleInvalidId = (err) => {
+  const message = `Invalid id ${err.value ? err.value : ""}`;
   return new AppError(message, 400);
 };
 
