@@ -25,6 +25,10 @@ const garageSchema = new Schema(
       type: String,
       required: [true, "Description required"],
     },
+    maximumSlot: {
+      type: Number,
+      required: [true, "Maximim garage slot required"],
+    },
     country: {
       type: String,
       required: true,
@@ -45,13 +49,15 @@ const garageSchema = new Schema(
         type: String,
         required: true,
     },
-    longitude: {
-      type: String,
-      required: true,
-    },
-    latitude: {
-      type: String,
-      required: true,
+    location: {
+      type: {
+        type: String,
+        default: 'Point'
+      },
+      coordinates: {
+        type: [Number],
+        required: true
+      }
     },
     openAt: {
       type: String,
@@ -93,6 +99,7 @@ const garageSchema = new Schema(
     categories: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "Category",
+      default: []
     },
     images: {
       type: [mongoose.Schema.Types.ObjectId],
@@ -153,6 +160,9 @@ const garageSchema = new Schema(
     timestamps: true,
   }
 );
+
+// Create a 2dsphere index on the location field
+garageSchema.index({ location: '2dsphere' });
 
 garageSchema.path("rules").default([]);
 garageSchema.path("additionalFee").default([]);

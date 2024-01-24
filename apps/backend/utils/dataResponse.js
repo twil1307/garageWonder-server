@@ -1,9 +1,7 @@
-export default (data, statusCode, message) => {
-    const respMessage = statusCode >= 200 && message ? message : 'Failed';
-
+export default (data, statusCode = 200, message = 'Success') => {
     return {
         statusCode: statusCode,
-        message: respMessage,
+        message: message,
         data: data
     }
 }

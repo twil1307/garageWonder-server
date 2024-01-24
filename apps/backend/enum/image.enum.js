@@ -1,0 +1,1 @@
+export const ALLOW_IMAGE_FORMAT = ["jpg", "png", "jpeg"];

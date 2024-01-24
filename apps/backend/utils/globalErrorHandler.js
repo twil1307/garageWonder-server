@@ -1,7 +1,10 @@
 import AppError from "./appError.js";
+import dataResponse from "./dataResponse.js";
 
 export default (err, req, res, next) => {
   let error = { ...err };
+
+  console.log(err);
 
   if (err.name === "CastError") error = handleCastErrorDB(err);
   if (err.name === "BSONTypeError") error = handleInvalidId(err);
@@ -11,7 +14,7 @@ export default (err, req, res, next) => {
   if (err.name === "TokenExpiredError") error = handleJWTExpiredError();
   if (err.name === "Error") error = err;
 
-  return res.status(error.statusCode || 500).json({ message: error.message || 'Something went wrong' });
+  return res.status(error.statusCode || 500).json(dataResponse(null, error.statusCode || 500, error.message || 'Something went wrong'));
 };
 
 // handle schema validation

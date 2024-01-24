@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 import { v2 as cloudinary } from 'cloudinary';
 import multer from 'multer';
 import { CloudinaryStorage } from 'multer-storage-cloudinary';
+import { ALLOW_IMAGE_FORMAT } from '../enum/image.enum.js';
 
 dotenv.config();
 
@@ -20,7 +21,7 @@ export const storageUser = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "User", // User folder to store the files in Cloudinary
-    allowed_formats: ["jpg", "png", "jpeg"], // Optional array of allowed file formats
+    allowed_formats: ALLOW_IMAGE_FORMAT, // Optional array of allowed file formats
   },
 });
 
@@ -28,7 +29,7 @@ export const storeGarage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "Garage", // Hotel folder to store the files in Cloudinary
-    allowed_formats: ["jpg", "png", "jpeg"], // Optional array of allowed file formats
+    allowed_formats: ALLOW_IMAGE_FORMAT, // Optional array of allowed file formats
     // transformation: [{ width: 800, height: 600}],
   },
 });
