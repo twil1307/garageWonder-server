@@ -29,6 +29,14 @@ const garageSchema = new Schema(
       type: Number,
       required: [true, "Maximim garage slot required"],
     },
+    dateSlot: [
+      {
+        type: {
+          slot: { type: Number },
+          date: { type: Number },
+        },
+      },
+    ],
     country: {
       type: String,
       required: true,
@@ -51,8 +59,7 @@ const garageSchema = new Schema(
     },
     location: {
       type: {
-        type: String,
-        default: 'Point'
+        type: String
       },
       coordinates: {
         type: [Number],

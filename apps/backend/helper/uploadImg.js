@@ -52,9 +52,12 @@ function getFileExtension(filename) {
   return filename.split(".").pop();
 }
 
+const storage = multer.memoryStorage();
+
 // upload to online cloud
 export const userImageUploader = multer({ storage: storageUser });
 export const garageImageUploader = multer({ storage: storeGarage });
+export const memoryStorage = multer({storage})
 
 // upload local
 export const garageImageUploaderLocal = multer({ storage: storageGarageLocal });

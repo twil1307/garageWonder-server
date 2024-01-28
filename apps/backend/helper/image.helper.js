@@ -4,6 +4,8 @@ import { HOME_IMAGE_SIZE } from "../enum/garage.enum.js";
 import { ALLOW_IMAGE_FORMAT } from "../enum/image.enum.js";
 
 export const saveMultipleImageMongoose = async (imagesPath, session) => {
+    console.log(imagesPath);
+
     const imagesId = [];
     const imagesInst = imagesPath.map(image => {
         const mongoId = new Types.ObjectId();
@@ -12,16 +14,22 @@ export const saveMultipleImageMongoose = async (imagesPath, session) => {
         return {_id: mongoId, path: convertUrlPathWithSize(image, HOME_IMAGE_SIZE.width, HOME_IMAGE_SIZE.height)}
     });
 
-    await Image.insertMany(imagesInst, {
-        rawResult: true,
-        session
-    });
+    const insertOption = {
+        rawResult: true
+    }
+
+    if (session) {
+        insertOption.session = session;
+    }
+
+    await Image.insertMany(imagesInst, insertOption);
+
 
     return imagesId;
 }
 
 // resize image by url
-const convertUrlPathWithSize = (urlStr, width = HOME_IMAGE_SIZE.width, height = HOME_IMAGE_SIZE.height) => {
+export const convertUrlPathWithSize = (urlStr, width = HOME_IMAGE_SIZE.width, height = HOME_IMAGE_SIZE.height) => {
     const splitedPath = urlStr.split('upload');
 
     return convertToWebp(`${splitedPath[0]}upload/w_${width},h_${height}${splitedPath[1]}`);

@@ -6,7 +6,7 @@ import Garage from '../models/garage.model.js'
 import AdditionalService from '../models/additionalService.model.js'
 
 // helper import
-import mongoose, { Types } from 'mongoose';
+import mongoose from 'mongoose';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
 import { retrieveNewGarageImage } from '../helper/garage.helper.js'
@@ -14,6 +14,8 @@ import { deleteMultipleImagesCloudinary, saveMultipleGarageServices } from '../h
 import dataResponse from '../utils/dataResponse.js';
 import { saveMultipleImageMongoose } from '../helper/image.helper.js';
 import { mainPipeline } from '../pipeline/garage.pipeline.js';
+import burgerQueue from '../jobs/image.job.js';
+import {redisClient} from '../config/redis.js'
 
 /**
  * @POST
@@ -111,7 +113,7 @@ export const getListGarages = catchAsync(async (req, res) => {
 
   const { garageName, serviceName, minPrice, maxPrice, findNearby, distance, lgt, lat } = req.query;
 
-  const pipeline = mainPipeline(garageName, serviceName, minPrice, maxPrice, true, distance, lgt, lat);
+  const pipeline = mainPipeline(garageName, serviceName, minPrice, maxPrice, findNearby || false, distance, lgt, lat);
 
   console.log(JSON.stringify(pipeline));
 
@@ -120,4 +122,105 @@ export const getListGarages = catchAsync(async (req, res) => {
   console.log(garages);
 
   return res.status(200).json(dataResponse(garages, 200, 'Get list garage successfully'))
+})
+
+export const memoryStorageUpload = async (req, res) => {
+  const ipAddress = req.header('x-forwarded-for') || req.socket.remoteAddress;;
+
+  try {
+    if (req.files['backgroundImage']) {
+      const backgroundFile = req.files['backgroundImage'][0];
+      const backgroundB64 = Buffer.from(backgroundFile.buffer).toString("base64");
+      const backgroundDataURI = "data:" + backgroundFile.mimetype + ";base64," + backgroundB64;
+
+      const garageImageURIs = [];
+      // Process multiple garage images
+      (req.files['images'] || []).map(async (file) => {
+        const garageB64 = Buffer.from(file.buffer).toString("base64");
+        const garageDataURI = "data:" + file.mimetype + ";base64," + garageB64;
+  
+        garageImageURIs.push(garageDataURI)
+      });
+      
+      burgerQueue.add({
+        backgroundDataURI: backgroundDataURI,
+        garageDataURIs: garageImageURIs,
+        ipAddress: ipAddress
+      }, {
+        // jobId: 'garageImageUpload',
+        attempts: 3
+      })
+
+      return res.status(200).json({
+        message: 'Add image successfully'
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.json({
+      error: error
+    });
+  } 
+}
+
+export const initialSaveGarage = catchAsync(async (req, res, next) => {
+
+  const newGarage = new Garage();
+
+  const ipAddress = req.header('x-forwarded-for') || req.socket.remoteAddress;;
+    
+  await redisClient.setEx(ipAddress, 3600, JSON.stringify(newGarage));
+  
+  return res.status(200).json({
+    message: 'Save redis successfully'
+  })
+  
+})
+
+export const createInitialGarage = catchAsync(async (req, res, next) => {
+  const ipAddress = req.header('x-forwarded-for') || req.socket.remoteAddress;;
+
+  const getGarage = await redisClient.get(ipAddress);
+
+  const newGarageParse = new Garage(JSON.parse(getGarage));
+
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+
+    const newGarage = new Garage(req.body);
+
+    const listServiceIdInstertd = await saveMultipleGarageServices(req.body.service, newGarage._id, session);
+    newGarage.service = listServiceIdInstertd;
+    newGarage.rules = JSON.parse(req.body.rules);
+    
+    const garageCoordinate = JSON.parse(req.body.location);
+
+    if(!garageCoordinate.type) {
+      garageCoordinate.type = 'Point'
+    }
+    newGarage.location = garageCoordinate;
+    newGarage.backgroundImage = newGarageParse.backgroundImage;
+    newGarage.images = newGarageParse.images;
+
+    await newGarage.save({ session });
+
+    // console.log(newGarageParse);
+    // console.log(newGarage);
+
+    // await session.abortTransaction();
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).json(dataResponse(newGarage, 200, 'Create new garage successfully'));
+  } catch (error) {
+    console.log(error);
+
+    await session.abortTransaction();
+    session.endSession();
+
+    throw new AppError(error.message, error.status);
+  }
+
 })

@@ -1,6 +1,10 @@
 import { createClient } from 'redis';
 // eslint-disable-next-line no-undef
-const redisClient = createClient(process.env.REDIS_PORT);
+export const redisClient = createClient(process.env.REDIS_PORT);
+
+export const redisOptions = {
+    redis: { port: process.env.REDIS_PORT },
+  };
 
 // connect to redis
 const connectRedis = async () => {
