@@ -8,14 +8,16 @@ const imageSchema = new Schema(
       required: [true, "Image path is required"],
       unique: true,
     },
-    // width: {
-    //   type: Number,
-    //   default: 0
-    // },
-    // heigh: {
-    //   type: Number,
-    //   default: 0
-    // }
+    garageId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Garage",
+    },
+    width: {
+      type: Number
+    },
+    heigh: {
+      type: Number
+    }
   },
   {
     timestamps: true,

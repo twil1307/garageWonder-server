@@ -2,16 +2,23 @@ import { Types } from "mongoose";
 import Image from "../models/image.model.js"
 import { HOME_IMAGE_SIZE } from "../enum/garage.enum.js";
 import { ALLOW_IMAGE_FORMAT } from "../enum/image.enum.js";
+import path from 'path';
+import fs from 'fs';
+import sharp from 'sharp'
+import dotenv from 'dotenv';
+import { fileURLToPath } from "url";
+dotenv.config();
 
-export const saveMultipleImageMongoose = async (imagesPath, session) => {
-    console.log(imagesPath);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
+export const saveMultipleImageMongoose = async (imagesPath, session, garageId, isUploadLocal = false) => {
     const imagesId = [];
     const imagesInst = imagesPath.map(image => {
         const mongoId = new Types.ObjectId();
         imagesId.push(mongoId);
-        console.log(convertUrlPathWithSize(image, HOME_IMAGE_SIZE.width, HOME_IMAGE_SIZE.height));
-        return {_id: mongoId, path: convertUrlPathWithSize(image, HOME_IMAGE_SIZE.width, HOME_IMAGE_SIZE.height)}
+        const pathImage = !isUploadLocal ? convertUrlPathWithSize(image, HOME_IMAGE_SIZE.width, HOME_IMAGE_SIZE.height) : image;
+        return {_id: mongoId, path: pathImage, garageId: garageId}
     });
 
     const insertOption = {
@@ -24,8 +31,38 @@ export const saveMultipleImageMongoose = async (imagesPath, session) => {
 
     await Image.insertMany(imagesInst, insertOption);
 
-
     return imagesId;
+}
+
+export const saveSingleImageLocalBase64 = async (ipAddress, bufferData, index) => {
+    const publicPath = path.join(process.cwd(), 'public');
+    const uploadPath = path.join(publicPath, 'images');
+
+    // convert webp
+    const webpData = await sharp(Buffer.from(bufferData, 'base64'))
+            .webp()
+            .toBuffer();
+
+    const timestamp = new Date().getTime();
+    const filename = `garageImg-${ipAddress.replace('::', '')}-${timestamp}${index || index === 0 ? `-${index}` : ''}.webp`;
+
+    console.log(filename)
+
+    // uploading image to server
+    fs.writeFileSync(path.join(uploadPath, filename), webpData);
+
+    return `${process.env.DEV_PUBLIC_URL}/${process.env.DEV_BACKUP_IMAGE_FOLDER}/${filename}`;
+}
+
+export const saveMultipleImagesLocalBase64 = async (ipAddress, bufferDataArr) => {
+    const imagesUploadingPromise = bufferDataArr.map(async (base64Image, index) => {
+        const data = await saveSingleImageLocalBase64(ipAddress, base64Image, index)
+        return data;
+    })
+
+    const data = await Promise.all(imagesUploadingPromise);
+
+    return data;
 }
 
 // resize image by url
@@ -45,4 +82,70 @@ const convertToWebp = (imageUrl) => {
     }
 
     return imageUrl
+}
+
+export const deleteFileInfolder = (imagePathToDelete) => {
+    const publicPath = path.join(process.cwd(), 'public');
+    const splitedImagePath = path.join(publicPath, imagePathToDelete.split(`${process.env.DEV_PUBLIC_URL}/`)[1]);
+
+    fs.unlink(splitedImagePath, (err) => {
+        if (err) {
+          console.error(`Error deleting image: ${err.message}`);
+        } else {
+          console.log(`Image deleted successfully: ${imagePathToDelete}`);
+        }
+      });
+}
+
+export const deleteMultipleFileInFolder = (imagePathsToDelete = []) => {
+    imagePathsToDelete.forEach(image => {
+        deleteFileInfolder(image)
+    })
+}
+
+export const getImagesDevPublicUrlIncluded = async (garageId) => {
+    const pipeline = [
+        {
+          $match: {
+            garageId: new Types.ObjectId(garageId)
+          }
+        },
+        {
+          $match: {
+            path: new RegExp(process.env.DEV_PUBLIC_URL, 'i')
+          }
+        }
+    ];
+
+    const retrieveImagesMongoose = await Image.aggregate(pipeline);
+
+    const filterPaths = retrieveImagesMongoose.map(image => image.path);
+
+    return filterPaths;
+}
+
+export const getImagesDevPublicUrlIncludedAndDeleted = async (garageId) => {
+    try {
+        const pipeline = [
+            {
+              $match: {
+                garageId: new Types.ObjectId(garageId)
+              }
+            },
+            {
+              $match: {
+                path: new RegExp(process.env.DEV_PUBLIC_URL, 'i')
+              }
+            }
+        ];
+    
+        const retrieveImagesMongoose = await Image.aggregate(pipeline);
+    
+        const imageIds = retrieveImagesMongoose.map(image => image._id);
+    
+        await Image.deleteMany({ _id: { $in: imageIds } });
+        
+    } catch (error) {
+        console.log('Delete failed with error: ', error);
+    }
 }

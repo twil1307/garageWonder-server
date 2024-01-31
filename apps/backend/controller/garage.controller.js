@@ -14,7 +14,7 @@ import { deleteMultipleImagesCloudinary, saveMultipleGarageServices } from '../h
 import dataResponse from '../utils/dataResponse.js';
 import { saveMultipleImageMongoose } from '../helper/image.helper.js';
 import { mainPipeline } from '../pipeline/garage.pipeline.js';
-import burgerQueue from '../jobs/image.job.js';
+import uploadFileQueue from '../jobs/image.job.js';
 import {redisClient} from '../config/redis.js'
 
 /**
@@ -134,21 +134,34 @@ export const memoryStorageUpload = async (req, res) => {
       const backgroundDataURI = "data:" + backgroundFile.mimetype + ";base64," + backgroundB64;
 
       const garageImageURIs = [];
+      const garageImageBuffer = [];
       // Process multiple garage images
       (req.files['images'] || []).map(async (file) => {
         const garageB64 = Buffer.from(file.buffer).toString("base64");
         const garageDataURI = "data:" + file.mimetype + ";base64," + garageB64;
   
+        garageImageBuffer.push(garageB64);
         garageImageURIs.push(garageDataURI)
       });
+
+      uploadFileQueue.add({
+        backgroundDataBuffer: backgroundB64,
+        garageDataBuffer: garageImageBuffer,
+        ipAddress: ipAddress,
+        isUploadLocal: true
+      }, {
+        jobId: 'garageImageUploadLocal',
+        attempts: 3
+      })
       
-      burgerQueue.add({
+      uploadFileQueue.add({
         backgroundDataURI: backgroundDataURI,
         garageDataURIs: garageImageURIs,
-        ipAddress: ipAddress
+        ipAddress: ipAddress,
+        isUploadLocal: false
       }, {
-        // jobId: 'garageImageUpload',
-        attempts: 3
+        jobId: 'garageImageUpload',
+        attempts: 5
       })
 
       return res.status(200).json({
@@ -205,9 +218,6 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
     newGarage.images = newGarageParse.images;
 
     await newGarage.save({ session });
-
-    // console.log(newGarageParse);
-    // console.log(newGarage);
 
     // await session.abortTransaction();
     await session.commitTransaction();
