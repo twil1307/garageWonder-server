@@ -37,33 +37,58 @@ const garageSchema = new Schema(
         },
       },
     ],
-    country: {
-      type: String,
-      required: true,
-    },
+    // country: {
+    //   type: String,
+    //   required: true,
+    // },
+    // district: {
+    //   type: String,
+    //   required: true,
+    // },
+    // city: {
+    //   type: String,
+    //   required: true,
+    // },
+    // streetName: {
+    //   type: String,
+    //   required: true,
+    // },
+    // streetNumber: {
+    //     type: String,
+    //     required: true,
+    // },
     district: {
-      type: String,
-      required: true,
+      type: {
+        district_id: { type: String },
+        district_name: { type: String },
+        district_type: { type: String },
+        lat: { type: String },
+        lng: { type: String },
+        province_id: { type: String }
+      }
     },
-    city: {
-      type: String,
-      required: true,
+    province: {
+      type: {
+        province_id: { type: Number },
+        province_name: { type: String },
+        province_type: { type: String }
+      }
     },
-    streetName: {
-      type: String,
-      required: true,
+    ward: {
+      type: {
+        ward_id: {type: String},
+        ward_name: {type: String},
+        district_id: {type: String},
+        ward_type: {type: String}
+      }
     },
-    streetNumber: {
-        type: String,
-        required: true,
-    },
+    streetAddress: { type: String },
     location: {
       type: {
         type: String
       },
       coordinates: {
-        type: [Number],
-        required: true
+        type: [Number]
       }
     },
     openAt: {
@@ -161,7 +186,7 @@ const garageSchema = new Schema(
       type: [mongoose.Schema.Types.ObjectId],
       ref: "User",
       default: []
-    },
+    }
   },
   {
     timestamps: true,

@@ -3,7 +3,6 @@ import { redisClient, redisOptions } from '../config/redis.js';
 import { cloudinaryInst } from '../helper/uploadImg.js';
 import { CACHING_CREATING_GARAGE_TIME } from '../enum/garage.enum.js';
 import { deleteFileInfolder, deleteMultipleFileInFolder, getImagesDevPublicUrlIncluded, getImagesDevPublicUrlIncludedAndDeleted, saveMultipleImageMongoose, saveMultipleImagesLocalBase64, saveSingleImageLocalBase64 } from '../helper/image.helper.js';
-import Garage from '../models/garage.model.js';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -35,6 +34,10 @@ cloudinaryUploadingQueue.on('completed', async (job, result) => {
     switch (job.id) {
         case 'garageImageUpload':
             console.log('Image job upload successfully');
+            await job.remove();
+            break;
+        case 'garageImageUploadLocal':
+            console.log('Image job upload local successfully');
             await job.remove();
             break;
     

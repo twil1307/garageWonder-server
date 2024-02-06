@@ -8,9 +8,7 @@ router.get('/additionalService', getAdditionalService);
 
 router.get('/:garageId', getGarageById);
 
-router.post('/image', 
-  // memoryStorage.single('backgroundImage'), 
-  // memoryStorage.array('garageImage'),
+router.post('/image',
   memoryStorage.fields([
     { name: 'backgroundImage', maxCount: 1 },
     { name: 'images', maxCount: 10 }
@@ -28,9 +26,6 @@ router.post('/',
     { name: "garageImage", maxCount: 10 }
   ]), 
   createNewGarage);
-
-
-
 
 router.get('/', getListGarages);
 

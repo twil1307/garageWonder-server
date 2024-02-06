@@ -1,3 +1,6 @@
+import { HOME_IMAGE_SIZE } from "../enum/garage.enum.js";
+import { convertUrlPathWithSize } from "../helper/image.helper.js";
+
 export const nearbyPipeline = (lgt, lat, distance) => ({
     $geoNear: {
       near: {
@@ -7,7 +10,7 @@ export const nearbyPipeline = (lgt, lat, distance) => ({
         ],
       },
       distanceField: "dist.calculated",
-      maxDistance: distance,
+      maxDistance: Number.parseFloat(distance),
       query: {},
       includeLocs: "dist.location",
       spherical: true,
@@ -16,7 +19,8 @@ export const nearbyPipeline = (lgt, lat, distance) => ({
 
 export const projectPipeline = {
     $project: {
-      image: "$garageImages.path",
+    //   images: "$garageImages.path",
+      images: "$garageImagesPath",
       location: "$dist",
       address: {
         $concat: [
@@ -43,7 +47,7 @@ export const mainPipeline = (garageName = '', serviceName = '', minServicePrice 
 
     let initialPipeline = [
         ...(
-            findNearby ? [nearbyPipeline(lgt, lat, Number.parseInt(distance))] : []
+            JSON.parse(findNearby) ? [nearbyPipeline(lgt, lat, distance)] : []
         ),  
         {
             $match: {
@@ -69,14 +73,14 @@ export const mainPipeline = (garageName = '', serviceName = '', minServicePrice 
                         $and: [
                             {
                                 "services.lowestPrice": {
-                                    $gte: minServicePrice, // lowest price
+                                    $gte: Number.parseFloat(minServicePrice), // lowest price
                                 },
                             },
                             ...(maxServicePrice // if there is max price provided, add this pipeline
                                 ? [
                                     {
                                       "services.highestPrice": {
-                                        $lte: maxServicePrice, // max price
+                                        $lte: Number.parseFloat(maxServicePrice), // max price
                                       },
                                     },
                                   ]
@@ -112,6 +116,7 @@ export const mainPipeline = (garageName = '', serviceName = '', minServicePrice 
                 as: "garageImages",
             },
         },
+        customPathTransformQuery(),
         //look up owner here ================
 
         // =================================
@@ -119,4 +124,29 @@ export const mainPipeline = (garageName = '', serviceName = '', minServicePrice 
     ];
 
     return initialPipeline;
+}
+
+const customPathTransformQuery = (width = HOME_IMAGE_SIZE.width, height = HOME_IMAGE_SIZE.height) => {
+    return {
+        $addFields: {
+            garageImagesPath: {
+            $map: {
+              input: "$garageImages",
+              as: "img",
+              in: {
+                _id: "$$img._id",
+                url: "$$img.path",
+                width: width,
+                height: height,
+              },
+            },
+          },
+        },
+    }
+}
+
+const testUpperCase = (str) => {
+    const urlStr = str;
+    const splitedPath = urlStr.split('upload');
+    return splitedPath[0];
 }

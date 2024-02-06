@@ -18,6 +18,7 @@ export const saveMultipleImageMongoose = async (imagesPath, session, garageId, i
         const mongoId = new Types.ObjectId();
         imagesId.push(mongoId);
         const pathImage = !isUploadLocal ? convertUrlPathWithSize(image, HOME_IMAGE_SIZE.width, HOME_IMAGE_SIZE.height) : image;
+        // const pathImage = image;
         return {_id: mongoId, path: pathImage, garageId: garageId}
     });
 
@@ -70,6 +71,36 @@ export const convertUrlPathWithSize = (urlStr, width = HOME_IMAGE_SIZE.width, he
     const splitedPath = urlStr.split('upload');
 
     return convertToWebp(`${splitedPath[0]}upload/w_${width},h_${height}${splitedPath[1]}`);
+}
+
+// resize image by url
+export const convertUrlPathObjectWithSize = (urlStr, width = HOME_IMAGE_SIZE.width, height = HOME_IMAGE_SIZE.height) => {
+  const splitedPath = urlStr.split('upload');
+
+  return {
+    url: convertToWebp(`${splitedPath[0]}upload/w_${width},h_${height}${splitedPath[1]}`),
+    width: width,
+    height: height
+  };
+}
+
+// resize image by url return object
+export const convertMultipleUrlPathWithSize = (garageArr = [], width = HOME_IMAGE_SIZE.width, height = HOME_IMAGE_SIZE.height) => {
+  
+  const returnData = garageArr.map(garage => {
+    garage.images = garage.images.map(img => {
+        return {
+          url: convertUrlPathWithSize(img.url),
+          width,
+          height
+        } 
+    })
+    return garage;
+})
+
+  console.log(returnData);
+
+  return returnData;
 }
 
 const convertToWebp = (imageUrl) => {

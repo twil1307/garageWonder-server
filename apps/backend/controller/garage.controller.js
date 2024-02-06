@@ -12,7 +12,7 @@ import catchAsync from '../utils/catchAsync.js';
 import { retrieveNewGarageImage } from '../helper/garage.helper.js'
 import { deleteMultipleImagesCloudinary, saveMultipleGarageServices } from '../helper/service.helper.js';
 import dataResponse from '../utils/dataResponse.js';
-import { saveMultipleImageMongoose } from '../helper/image.helper.js';
+import { convertMultipleUrlPathWithSize, saveMultipleImageMongoose } from '../helper/image.helper.js';
 import { mainPipeline } from '../pipeline/garage.pipeline.js';
 import uploadFileQueue from '../jobs/image.job.js';
 import {redisClient} from '../config/redis.js'
@@ -119,9 +119,11 @@ export const getListGarages = catchAsync(async (req, res) => {
 
   const garages = await Garage.aggregate(pipeline);
 
-  console.log(garages);
+  const garagesImagesPath = convertMultipleUrlPathWithSize(garages);
 
-  return res.status(200).json(dataResponse(garages, 200, 'Get list garage successfully'))
+  console.log(garagesImagesPath);
+
+  return res.status(200).json(dataResponse(garagesImagesPath, 200, 'Get list garage successfully'))
 })
 
 export const memoryStorageUpload = async (req, res) => {
@@ -173,7 +175,7 @@ export const memoryStorageUpload = async (req, res) => {
     return res.json({
       error: error
     });
-  } 
+  }
 }
 
 export const initialSaveGarage = catchAsync(async (req, res, next) => {
@@ -205,8 +207,12 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
     const newGarage = new Garage(req.body);
 
     const listServiceIdInstertd = await saveMultipleGarageServices(req.body.service, newGarage._id, session);
+    newGarage._id = getGarage._id;
     newGarage.service = listServiceIdInstertd;
     newGarage.rules = JSON.parse(req.body.rules);
+    newGarage.district = JSON.parse(req.body.district);
+    newGarage.province = JSON.parse(req.body.province);
+    newGarage.ward = JSON.parse(req.body.ward);
     
     const garageCoordinate = JSON.parse(req.body.location);
 
