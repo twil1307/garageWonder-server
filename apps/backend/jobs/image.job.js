@@ -48,9 +48,10 @@ cloudinaryUploadingQueue.on('completed', async (job, result) => {
 
 const writeFileCloud = async (payload, done) => {
     try {
-        console.log('Ready to upload image to cloudinary');
-
+        
         const { backgroundDataURI, garageDataURIs, ipAddress } = payload.data
+
+        console.log('Ready to upload image to cloudinary for ip: ' + ipAddress);
         
         const cachedCreatingGarage = await redisClient.get(ipAddress);
 
@@ -107,9 +108,10 @@ const writeFileCloud = async (payload, done) => {
 
 const writeFileToServer = async (payload, done) => {
     try {
-        console.log('Start writing file to server');
-
+        
         const { ipAddress, backgroundDataBuffer, garageDataBuffer } = payload.data;
+        
+        console.log('Start writing file to server for ip: ' + ipAddress);
 
         const cachedCreatingGarage = await redisClient.get(ipAddress);
         const parsedCreatingGarage = JSON.parse(cachedCreatingGarage);

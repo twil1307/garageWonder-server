@@ -128,6 +128,7 @@ export const getListGarages = catchAsync(async (req, res) => {
 
 export const memoryStorageUpload = async (req, res) => {
   const ipAddress = req.header('x-forwarded-for') || req.socket.remoteAddress;;
+  console.log("Incoming ip address: " + ipAddress);
 
   try {
     if (req.files['backgroundImage']) {
