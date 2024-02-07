@@ -98,7 +98,12 @@ const getUserBookingHistoryTypeCanceled = catchAsync(async (req, res, next) => {
   });
 });
 
+const getUserLeftMostIpAddress = (ipAddress) => {
+  return ipAddress.split(',')[0];
+}
+
 module.exports = {
+  getUserLeftMostIpAddress,
   getUserBookingHistoryTypeAll,
   getUserBookingHistoryTypeToday,
   getUserBookingHistoryTypeBooked,

@@ -16,6 +16,7 @@ import { convertMultipleUrlPathWithSize, saveMultipleImageMongoose } from '../he
 import { mainPipeline } from '../pipeline/garage.pipeline.js';
 import uploadFileQueue from '../jobs/image.job.js';
 import {redisClient} from '../config/redis.js'
+import { getUserLeftMostIpAddress } from '../helper/userService.js';
 
 /**
  * @POST
@@ -127,7 +128,7 @@ export const getListGarages = catchAsync(async (req, res) => {
 })
 
 export const memoryStorageUpload = async (req, res) => {
-  const ipAddress = req.header('x-forwarded-for') || req.socket.remoteAddress;;
+  const ipAddress = getUserLeftMostIpAddress(req.header('x-forwarded-for') || req.socket.remoteAddress);
   console.log("Incoming ip address: " + ipAddress);
 
   try {
@@ -183,9 +184,9 @@ export const initialSaveGarage = catchAsync(async (req, res, next) => {
 
   const newGarage = new Garage();
 
-  const ipAddress = req.header('x-forwarded-for') || req.socket.remoteAddress;;
+  const ipAddress = req.header('x-forwarded-for') || req.socket.remoteAddress;
     
-  await redisClient.set(ipAddress, JSON.stringify(newGarage), 'EX', 3600);
+  await redisClient.set(getUserLeftMostIpAddress(ipAddress), JSON.stringify(newGarage), 'EX', 3600);
   
   return res.status(200).json({
     message: 'Save redis successfully'
@@ -194,9 +195,9 @@ export const initialSaveGarage = catchAsync(async (req, res, next) => {
 })
 
 export const createInitialGarage = catchAsync(async (req, res, next) => {
-  const ipAddress = req.header('x-forwarded-for') || req.socket.remoteAddress;;
+  const ipAddress = req.header('x-forwarded-for') || req.socket.remoteAddress;
 
-  const getGarage = await redisClient.get(ipAddress);
+  const getGarage = await redisClient.get(getUserLeftMostIpAddress(ipAddress));
 
   const newGarageParse = new Garage(JSON.parse(getGarage));
 
