@@ -31,7 +31,7 @@ module.exports.redisApiCache =
               // at this time, send no longer has the same effect as it used to
               res.json = (body) => {
                   console.log(body);
-                  redisClient.setEx(key, duration, JSON.stringify(body));
+                  set.set(key, JSON.stringify(body), 'EX', duration);
                   res.originalSend(body);
               };
               next();
