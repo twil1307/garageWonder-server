@@ -94,7 +94,7 @@ const writeFileCloud = async (payload, done) => {
         garageObj.backgroundImage = backgroundResult.url;
         
         // write data to redis
-        await redisClient.setEx(ipAddress, CACHING_CREATING_GARAGE_TIME, JSON.stringify(garageObj))
+        await redisClient.set(ipAddress, JSON.stringify(garageObj), 'EX', CACHING_CREATING_GARAGE_TIME)
 
         console.log('Finish uploading image to cloudinary');
         done();
@@ -132,7 +132,7 @@ const writeFileToServer = async (payload, done) => {
         parsedCreatingGarage.backgroundImage = backgroundFilename;
         parsedCreatingGarage.images = garageSavedId;
 
-        await redisClient.setEx(ipAddress, CACHING_CREATING_GARAGE_TIME, JSON.stringify(parsedCreatingGarage))
+        await redisClient.set(ipAddress, JSON.stringify(parsedCreatingGarage), 'EX', CACHING_CREATING_GARAGE_TIME)
 
         done();
     } catch (error) {

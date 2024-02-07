@@ -184,7 +184,7 @@ export const initialSaveGarage = catchAsync(async (req, res, next) => {
 
   const ipAddress = req.header('x-forwarded-for') || req.socket.remoteAddress;;
     
-  await redisClient.setEx(ipAddress, 3600, JSON.stringify(newGarage));
+  await redisClient.set(ipAddress, JSON.stringify(newGarage), 'EX', 3600);
   
   return res.status(200).json({
     message: 'Save redis successfully'
