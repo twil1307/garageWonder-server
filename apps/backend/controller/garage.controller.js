@@ -148,15 +148,15 @@ export const memoryStorageUpload = async (req, res) => {
         garageImageURIs.push(garageDataURI)
       });
 
-      uploadFileQueue.add({
-        backgroundDataBuffer: backgroundB64,
-        garageDataBuffer: garageImageBuffer,
-        ipAddress: ipAddress,
-        isUploadLocal: true
-      }, {
-        jobId: 'garageImageUploadLocal',
-        attempts: 3
-      })
+      // uploadFileQueue.add({
+      //   backgroundDataBuffer: backgroundB64,
+      //   garageDataBuffer: garageImageBuffer,
+      //   ipAddress: ipAddress,
+      //   isUploadLocal: true
+      // }, {
+      //   jobId: 'garageImageUploadLocal',
+      //   attempts: 3
+      // })
       
       uploadFileQueue.add({
         backgroundDataURI: backgroundDataURI,
