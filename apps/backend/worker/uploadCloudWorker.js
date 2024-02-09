@@ -39,7 +39,7 @@ const writeFileCloud = async () => {
         }));
 
         console.log(backgroundResult.url);
-        console.log(convertMultipleImageWebp(garagesResult));
+        console.log(extractUrlCloudinary(garagesResult));
 
         const garageObj = JSON.parse(cachedCreatingGarage);
 
