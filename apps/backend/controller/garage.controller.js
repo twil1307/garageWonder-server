@@ -151,23 +151,7 @@ export const memoryStorageUpload = async (req, res) => {
         garageImageBuffer.push(garageB64);
         garageImageURIs.push(garageDataURI)
       });
-
-      const localUploadWorker = new Worker(publicPath, {
-          workerData: {
-              backgroundDataURI: backgroundDataURI,
-              garageDataURIs: garageImageURIs,
-              ipAddress: ipAddress,
-              isUploadLocal: false,
-              retry: 5
-          },
-      })
-
-      localUploadWorker.on('message', async (data) => {
-        console.log(data);
-        await Image.insertMany(data.imagesInst)
-        console.log('upload cloud done');
-      });
-
+      
       // uploadFileQueue.add({
       //   backgroundDataBuffer: backgroundB64,
       //   garageDataBuffer: garageImageBuffer,
