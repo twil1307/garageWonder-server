@@ -12,11 +12,14 @@ import catchAsync from '../utils/catchAsync.js';
 import { retrieveNewGarageImage } from '../helper/garage.helper.js'
 import { deleteMultipleImagesCloudinary, saveMultipleGarageServices } from '../helper/service.helper.js';
 import dataResponse from '../utils/dataResponse.js';
-import { convertMultipleUrlPathWithSize, saveMultipleImageMongoose } from '../helper/image.helper.js';
+import { convertMultipleUrlPathWithSize, convertToWebp, saveMultipleImageMongoose } from '../helper/image.helper.js';
 import { mainPipeline } from '../pipeline/garage.pipeline.js';
 import uploadFileQueue from '../jobs/image.job.js';
 import {redisClient} from '../config/redis.js'
 import { getUserLeftMostIpAddress } from '../helper/userService.js';
+import { Worker } from 'worker_threads';
+import { getWorkerPath } from '../utils/filePath.js';
+import Image from '../models/image.model.js';
 
 /**
  * @POST
@@ -130,6 +133,7 @@ export const getListGarages = catchAsync(async (req, res) => {
 export const memoryStorageUpload = async (req, res) => {
   const ipAddress = getUserLeftMostIpAddress(req.header('x-forwarded-for') || req.socket.remoteAddress);
   console.log("Incoming ip address: " + ipAddress);
+  const publicPath = getWorkerPath('uploadCloudWorker.js');
 
   try {
     if (req.files['backgroundImage']) {
@@ -147,7 +151,7 @@ export const memoryStorageUpload = async (req, res) => {
         garageImageBuffer.push(garageB64);
         garageImageURIs.push(garageDataURI)
       });
-
+      
       // uploadFileQueue.add({
       //   backgroundDataBuffer: backgroundB64,
       //   garageDataBuffer: garageImageBuffer,
@@ -158,15 +162,15 @@ export const memoryStorageUpload = async (req, res) => {
       //   attempts: 3
       // })
       
-      uploadFileQueue.add({
-        backgroundDataURI: backgroundDataURI,
-        garageDataURIs: garageImageURIs,
-        ipAddress: ipAddress,
-        isUploadLocal: false
-      }, {
-        jobId: 'garageImageUpload',
-        attempts: 5
-      })
+      // uploadFileQueue.add({
+      //   backgroundDataURI: backgroundDataURI,
+      //   garageDataURIs: garageImageURIs,
+      //   ipAddress: ipAddress,
+      //   isUploadLocal: false
+      // }, {
+      //   jobId: 'garageImageUpload',
+      //   attempts: 5
+      // })
 
       return res.status(200).json({
         message: 'Add image successfully'
@@ -222,7 +226,7 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
       garageCoordinate.type = 'Point'
     }
     newGarage.location = garageCoordinate;
-    newGarage.backgroundImage = newGarageParse.backgroundImage;
+    newGarage.backgroundImage = convertToWebp(newGarageParse.backgroundImage);
     newGarage.images = newGarageParse.images;
 
     await newGarage.save({ session });

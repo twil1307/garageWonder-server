@@ -12,7 +12,32 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+export const getMultipleImageMongooseInst = async (imagesPath, session, garageId, isUploadLocal = false) => {
+  console.log(imagesPath);
+  const imagesId = [];
+  const imagesInst = imagesPath.map(image => {
+      const mongoId = new Types.ObjectId();
+      imagesId.push(mongoId);
+      const pathImage = !isUploadLocal ? convertUrlPathWithSize(image, HOME_IMAGE_SIZE.width, HOME_IMAGE_SIZE.height) : image;
+      // const pathImage = image;
+      return {_id: mongoId.toString(), path: pathImage, garageId: garageId}
+  });
+
+  console.log(imagesInst);
+
+  const insertOption = {
+      rawResult: true
+  }
+
+  if (session) {
+      insertOption.session = session;
+  }
+
+  return {imagesId, imagesInst: imagesInst || [], insertOption};
+}
+
 export const saveMultipleImageMongoose = async (imagesPath, session, garageId, isUploadLocal = false) => {
+    console.log(imagesPath);
     const imagesId = [];
     const imagesInst = imagesPath.map(image => {
         const mongoId = new Types.ObjectId();
@@ -30,7 +55,11 @@ export const saveMultipleImageMongoose = async (imagesPath, session, garageId, i
         insertOption.session = session;
     }
 
+    console.log(insertOption);
+
     await Image.insertMany(imagesInst, insertOption);
+
+    console.log('Insert successfully');
 
     return imagesId;
 }
@@ -103,7 +132,7 @@ export const convertMultipleUrlPathWithSize = (garageArr = [], width = HOME_IMAG
   return returnData;
 }
 
-const convertToWebp = (imageUrl) => {
+export const convertToWebp = (imageUrl) => {
     const splitUrlPart = imageUrl.split('.');
 
     if(ALLOW_IMAGE_FORMAT.includes(splitUrlPart[splitUrlPart.length - 1])) {
