@@ -46,6 +46,12 @@ cloudinaryUploadingQueue.on('completed', async (job, result) => {
     }
 });
 
+cloudinaryUploadingQueue.on('failed', async (job, result) => {
+    if (job.attemptsMade > 5) {
+        await job.remove();
+    }
+});
+
 const writeFileCloud = async (payload, done) => {
     try {
         
@@ -148,7 +154,7 @@ const handleSavingImage = async (garagesResult, garageId) => {
     session.startTransaction();
 
     try {
-        const images = await saveMultipleImageMongoose(convertMultipleImageWebp(garagesResult), undefined, garageId) || [];
+        const images = await saveMultipleImageMongoose(extractUrlCloudinary(garagesResult), undefined, garageId) || [];
 
         await session.commitTransaction();
         session.endSession();
@@ -165,7 +171,7 @@ const handleSavingImage = async (garagesResult, garageId) => {
     }
 }
 
-const convertMultipleImageWebp = (imagesPath) => {
+const extractUrlCloudinary = (imagesPath) => {
     const imagesInst = imagesPath.map(image => {
         return image.url
     });
