@@ -3,7 +3,7 @@ import { getUser, signUpUser } from '../controller/user.controller.js';
 var router = Router();
 
 /* GET users listing. */
-router.get('/:id', getUser);
+router.get('/:uid', getUser);
 
 router.post('/', signUpUser);
 

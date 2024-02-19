@@ -27,32 +27,7 @@ const userSchema = new Schema(
       type: String,
       required: false
     },
-    providerData: {
-      type: [
-        {
-          providerId: {
-            type: String,
-            required: false
-          },
-          uid: {
-            type: String,
-            required: false
-          },
-          displayName: {
-            type: String,
-            required: false
-          },
-          email: {
-            type: String,
-            required: false
-          },
-          phoneNumber: String,
-          photoURL: String
-        }
-      ],
-      required: false
-    },
-    phone: {
+    phoneNumber: {
       type: String,
       required: false,
     },

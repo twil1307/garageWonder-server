@@ -8,20 +8,20 @@ import { hashPassword, comparePassword } from '../helper/passwordService.js';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
 import dataResponse from '../utils/dataResponse.js';
+import { ObjectId } from 'mongodb';
 
 export const getUser = catchAsync(async (req, res, next) => {
-  const { id } = req.params;
+  const { uid } = req.params;
 
-  if (!id) {
+  if (!uid) {
     return res.status(400).json(dataResponse(null, 400, 'Uid or id required'));
   }
 
-  const userFind = await User.findOne({
-    $or: [
-      { uid: id },
-      { _id: id }
-    ]
-  })
+  const isObjectId = ObjectId.isValid(uid);
+
+  const pipeline = {[isObjectId ? '_id' : 'uid']: uid}
+
+  const userFind = await User.findOne(pipeline);
 
   if (userFind) {
     return res.status(200).json(dataResponse(userFind, 200, 'User found successfully'));
@@ -31,19 +31,23 @@ export const getUser = catchAsync(async (req, res, next) => {
 });
 
 export const signUpUser = catchAsync(async (req, res, next) => {
-
-  const user = new User(req.body);
+  const { uid, email } = req.body;
 
   const existedUser = await User.findOne({
     $or: [
-      { uid: user.uid },
-      { email: user.email }
+      { uid: uid },
+      { email: email }
     ]
    });
 
   if(existedUser) {
     return res.status(400).json(dataResponse(null, 400, 'User existed - redirect to login'));
   };
+
+  const phoneNumber = req.body.providerData[0].phoneNumber || null;
+
+  const user = new User(req.body);
+  user.phoneNumber = phoneNumber;
 
   const savedUser = await user.save();
 
