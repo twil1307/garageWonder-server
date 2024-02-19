@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 import Image from "../models/image.model.js"
-import { HOME_IMAGE_SIZE } from "../enum/garage.enum.js";
+import { HOME_IMAGE_SIZE, TOTAL_IMAGE_SIZE } from "../enum/garage.enum.js";
 import { ALLOW_IMAGE_FORMAT } from "../enum/image.enum.js";
 import path from 'path';
 import fs from 'fs';
@@ -62,6 +62,36 @@ export const saveMultipleImageMongoose = async (imagesPath, session, garageId, i
     console.log('Insert successfully');
 
     return imagesId;
+}
+
+export const saveMultipleImageWithSizeMongoose = async (imagesPath, session, garageId, isUploadLocal = false) => {
+  console.log(imagesPath);
+  const imagesId = [];
+  const imagesInst = [];
+  
+  imagesPath.forEach((image) => {
+    TOTAL_IMAGE_SIZE.forEach((size) => {
+      const mongoId = new Types.ObjectId();
+      imagesId.push(mongoId);
+      const pathImage = !isUploadLocal ? convertUrlPathWithSize(image, size.width, size.height) : image;
+
+      imagesInst.push({_id: mongoId, url: pathImage, garageId: garageId, width: size.width, height: size.height})
+    })
+  })
+
+  const insertOption = {
+      rawResult: true
+  }
+
+  if (session) {
+      insertOption.session = session;
+  }
+
+  await Image.insertMany(imagesInst, insertOption);
+
+  console.log('Insert successfully');
+
+  return imagesId;
 }
 
 export const saveSingleImageLocalBase64 = async (ipAddress, bufferData, index) => {

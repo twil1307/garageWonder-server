@@ -71,7 +71,7 @@ const writeFileCloud = async () => {
 
         console.log('Finish uploading image to cloudinary');
 
-        parentPort.postMessage({imagesInst: imgInstSavingMongoose.imagesInst});
+        parentPort.postMessage({imagesInst: imgInstSavingMongoose.imagesInst, garageId: garageObj._id});
         
     } catch (error) {
         console.log(error);

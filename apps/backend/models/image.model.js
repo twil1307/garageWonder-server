@@ -3,9 +3,9 @@ const Schema = mongoose.Schema;
 
 const imageSchema = new Schema(
   {
-    path: {
+    url: {
       type: String,
-      required: [true, "Image path is required"],
+      required: [true, "Image url is required"],
       unique: true,
     },
     garageId: {

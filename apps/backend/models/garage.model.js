@@ -17,9 +17,13 @@ const garageSchema = new Schema(
       type: String,
       required: [true, "backgroundImage required"],
     },
-    isVerified: {
+    status: {
+      type: Number,
+      default: 0,
+    },
+    isVerify: {
       type: Boolean,
-      default: false,
+      default: false
     },
     description: {
       type: String,
@@ -177,7 +181,7 @@ const garageSchema = new Schema(
         ref: "Service",
         default: [],
     },
-    additionalService: {
+    additionalServices: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "AdditionalService",
       default: [],
@@ -186,11 +190,17 @@ const garageSchema = new Schema(
       type: [mongoose.Schema.Types.ObjectId],
       ref: "User",
       default: []
+    },
+    createdAt: {
+      type: Number
+    },
+    updatedAt: {
+      type: Number
     }
   },
-  {
-    timestamps: true,
-  }
+  // {
+  //   timestamps: true,
+  // }
 );
 
 // Create a 2dsphere index on the location field
@@ -199,6 +209,18 @@ garageSchema.index({ location: '2dsphere' });
 garageSchema.path("rules").default([]);
 garageSchema.path("additionalFee").default([]);
 
+garageSchema.pre('save', function(next) {
+  this.createdAt = new Date().getTime();
+  this.updatedAt = new Date().getTime();
+
+  next();
+});
+
+garageSchema.pre('updateOne', function(next) {
+  this.updatedAt = new Date().getTime();
+
+  next();
+})
 
 const Garage = mongoose.model("Garage", garageSchema);
 

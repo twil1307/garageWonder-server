@@ -20,6 +20,14 @@ const categorySchema = new Schema(
   }
 );
 
+// categorySchema.pre('save', function(next) {
+//   console.log('Pre-save occured');
+//   console.log(this);
+//   this.hello = 'leduc';
+//   this.description = 'duccccccccccccccccccccccccc';
+
+//   next();
+// })
 
 
 const Category = mongoose.model("Category", categorySchema);

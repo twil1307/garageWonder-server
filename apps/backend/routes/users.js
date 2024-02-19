@@ -1,9 +1,10 @@
 import { Router } from 'express';
+import { getUser, signUpUser } from '../controller/user.controller.js';
 var router = Router();
 
 /* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});
+router.get('/:id', getUser);
+
+router.post('/', signUpUser);
 
 export default router;

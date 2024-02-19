@@ -3,35 +3,56 @@ const Schema = mongoose.Schema;
 
 const userSchema = new Schema(
   {
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-    },
-    username: {
+    uid: {
       type: String,
-      required: [true, 'Username required'],
-      unique: true
-    },
-    password: {
-      type: String,
-      required: [true, 'Password required'],
+      required: false
     },
     email: {
       type: String,
-      required: [true, 'Email required'],
+      required: false
+    },
+    emailVerified: {
+      type: Boolean,
+      required: false
+    },
+    displayName: {
+      type: String,
+      required: false
+    },
+    isAnonymous: {
+      type: Boolean,
+      required: false
+    },
+    photoURL: {
+      type: String,
+      required: false
+    },
+    providerData: {
+      type: [
+        {
+          providerId: {
+            type: String,
+            required: false
+          },
+          uid: {
+            type: String,
+            required: false
+          },
+          displayName: {
+            type: String,
+            required: false
+          },
+          email: {
+            type: String,
+            required: false
+          },
+          phoneNumber: String,
+          photoURL: String
+        }
+      ],
+      required: false
     },
     phone: {
-      type: String,
-      required: false,
-    },
-    subName: {
-      type: String,
-      required: false,
-    },
-    name: {
-      type: String,
-      required: false,
-    },
-    avatar: {
       type: String,
       required: false,
     },
@@ -40,19 +61,7 @@ const userSchema = new Schema(
       required: true,
       default: 1,
     },
-    ggid: {
-      type: String,
-      required: false,
-    },
-    wishlistId: {
-      type: String,
-      required: false,
-    },
     selfDescription: {
-      type: String,
-      required: false,
-    },
-    salt: {
       type: String,
       required: false,
     },
@@ -60,14 +69,9 @@ const userSchema = new Schema(
       type: String,
       required: false,
     },
-    dob: {
-      type: Date,
-      required: false,
-    },
-    signAt: {
-      type: Date,
-      required: true,
-      default: Date.now,
+    createdAt: {
+      type: String,
+      required: false
     },
     favoriteGarage: {
       type: [mongoose.Schema.Types.ObjectId],
@@ -77,10 +81,9 @@ const userSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'BankingAccount',
     },
- },
-  {
-    timestamps: true,
-  }
+ }
 );
 
-module.exports = mongoose.model('Users', userSchema);
+const Users = mongoose.model("Users", userSchema);
+
+export default Users;
