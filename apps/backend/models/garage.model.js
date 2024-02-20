@@ -14,8 +14,7 @@ const garageSchema = new Schema(
       unique: true,
     },
     backgroundImage: {
-      type: String,
-      required: [true, "backgroundImage required"],
+      type: String
     },
     status: {
       type: Number,
@@ -41,52 +40,7 @@ const garageSchema = new Schema(
         },
       },
     ],
-    // country: {
-    //   type: String,
-    //   required: true,
-    // },
-    // district: {
-    //   type: String,
-    //   required: true,
-    // },
-    // city: {
-    //   type: String,
-    //   required: true,
-    // },
-    // streetName: {
-    //   type: String,
-    //   required: true,
-    // },
-    // streetNumber: {
-    //     type: String,
-    //     required: true,
-    // },
-    district: {
-      type: {
-        district_id: { type: String },
-        district_name: { type: String },
-        district_type: { type: String },
-        lat: { type: String },
-        lng: { type: String },
-        province_id: { type: String }
-      }
-    },
-    province: {
-      type: {
-        province_id: { type: Number },
-        province_name: { type: String },
-        province_type: { type: String }
-      }
-    },
-    ward: {
-      type: {
-        ward_id: {type: String},
-        ward_name: {type: String},
-        district_id: {type: String},
-        ward_type: {type: String}
-      }
-    },
-    streetAddress: { type: String },
+    address: { type: String },
     location: {
       type: {
         type: String
@@ -166,8 +120,8 @@ const garageSchema = new Schema(
     rules: [
       {
         type: {
-          name: { type: String, required: true },
-          description: { type: String, required: true },
+          name: { type: String, required: false },
+          description: { type: String, required: false },
         },
       },
     ],

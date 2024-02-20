@@ -203,20 +203,39 @@ export const memoryStorageUpload = async (req, res) => {
         garageImageURIs.push(garageDataURI)
       });
 
+      const cachedCreatingGarage = await redisClient.get(getUserLeftMostIpAddress(ipAddress));
+
       const localUploadWorker = new Worker(publicPath, {
         workerData: {
             backgroundDataURI: backgroundDataURI,
             garageDataURIs: garageImageURIs,
             ipAddress: ipAddress,
             isUploadLocal: false,
-            retry: 5
+            cachedCreatingGarage: cachedCreatingGarage,
+            retry: 7
           },
       })
 
       localUploadWorker.on('message', async (data) => {
         console.log(data);
         // await Image.insertMany(data.imagesInst)
-        await saveMultipleImageWithSizeMongoose(data.imagesUrls, undefined, data.garageId, false);
+        const imagesId = await saveMultipleImageWithSizeMongoose(data.imagesUrls, undefined, data.garageId, false);
+
+        if(data.isUpdateDB) {
+          const query = {
+            _id: mongoose.Types.ObjectId(data.garageId)
+          };
+    
+          const update = {
+            $set: {
+              images: imagesId,
+              backgroundImage: data.backgroundImageUrl
+            }
+          }
+    
+          await Garage.findOneAndUpdate(query, update);
+          console.log('Update data in DB successfully') 
+        }
         console.log('upload cloud done');
       });
 
@@ -252,26 +271,26 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
+  console.log(typeof req.body.district);
   try {
 
     const newGarage = new Garage(req.body);
 
-    const listServiceIdInstertd = await saveMultipleGarageServices(req.body.service, newGarage._id, session);
+    const listServiceIdInstertd = req.body.service ? await saveMultipleGarageServices(req.body.service, newGarage._id, session) : null;
     newGarage._id = newGarageParse._id;
-    newGarage.service = listServiceIdInstertd;
-    newGarage.rules = JSON.parse(req.body.rules);
-    newGarage.district = JSON.parse(req.body.district);
-    newGarage.province = JSON.parse(req.body.province);
-    newGarage.ward = JSON.parse(req.body.ward);
-    
-    const garageCoordinate = JSON.parse(req.body.location);
+    newGarage.service = listServiceIdInstertd ?? null;
+    newGarage.rules = JSON.parse(req.body.rules || null);
+    newGarage.additionalServices = JSON.parse(req.body.additionalServices).map((item) => mongoose.Types.ObjectId(item))
+    const garageCoordinate = JSON.parse(req.body.location || null);
 
     if(!garageCoordinate.type) {
       garageCoordinate.type = 'Point'
     }
     newGarage.location = garageCoordinate;
-    newGarage.backgroundImage = convertToWebp(newGarageParse.backgroundImage);
+    newGarage.backgroundImage = newGarageParse.backgroundImage ? convertToWebp(newGarageParse.backgroundImage) : null;
     newGarage.images = newGarageParse.images;
+
+    console.log(newGarage);
 
     await newGarage.save({ session });
 

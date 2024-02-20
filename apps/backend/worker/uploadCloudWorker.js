@@ -2,23 +2,22 @@ import { parentPort, workerData } from 'worker_threads'
 import { redisClient } from '../config/redis.js';
 import { cloudinaryInst } from '../helper/uploadImg.js';
 import { CACHING_CREATING_GARAGE_TIME } from '../enum/garage.enum.js';
-import { deleteFileInfolder, deleteMultipleFileInFolder, getImagesDevPublicUrlIncluded, getImagesDevPublicUrlIncludedAndDeleted, getMultipleImageMongooseInst, saveMultipleImageMongoose } from '../helper/image.helper.js';
+import { convertToWebp, deleteFileInfolder, deleteMultipleFileInFolder, getImagesDevPublicUrlIncluded, getImagesDevPublicUrlIncludedAndDeleted, getMultipleImageMongooseInst, saveMultipleImageMongoose } from '../helper/image.helper.js';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import Garage from '../models/garage.model.js';
 dotenv.config();
 
 const writeFileCloud = async () => {
     try {
         
-        const { backgroundDataURI, garageDataURIs, ipAddress } = workerData;
+        const { backgroundDataURI, garageDataURIs, ipAddress, cachedCreatingGarage } = workerData;
 
         if(backgroundDataURI && garageDataURIs && ipAddress) {
             console.log("All parameter matched");
         }
 
         console.log('Ready to upload image to cloudinary for ip: ' + ipAddress);
-        
-        const cachedCreatingGarage = await redisClient.get(ipAddress);
 
         if (!cachedCreatingGarage) {
             console.log('Cannot find any garage creating in progress, aborting receive image...');
@@ -62,19 +61,33 @@ const writeFileCloud = async () => {
         console.log(garageObj);
 
         const isCachedDataExisted = await redisClient.get(ipAddress);
-
+        let isUpdateDB = true;
         if (isCachedDataExisted) {
             // write data to redis
             await redisClient.set(ipAddress, JSON.stringify(garageObj), 'EX', CACHING_CREATING_GARAGE_TIME)
-        } else {
-            // if there is no garage in redis - which mean that it is saved to DB 
-            // => update it in the DB
-            
-        }
+            isUpdateDB = !isUpdateDB;
+        } 
+        // else {
+        //     // if there is no garage in redis - which mean that it is saved to DB 
+        //     // => update it in the DB
+        //     const query = {
+        //         _id: garageObj._id
+        //     };
+
+        //     const update = {
+        //         $set: {
+        //             images: garageObj.images,
+        //             backgroundImage: garageObj.backgroundImage
+        //         }
+        //     }
+
+        //     await Garage.findOneAndUpdate(query, update);
+        //     console.log('Update data in DB successfully')
+        // }
         
         console.log('Finish uploading image to cloudinary');
 
-        parentPort.postMessage({imagesInst: imgInstSavingMongoose.imagesInst, imagesUrls: imgInstSavingMongoose.imagesUrls, garageId: garageObj._id});
+        parentPort.postMessage({imagesInst: imgInstSavingMongoose.imagesInst, imagesUrls: imgInstSavingMongoose.imagesUrls, backgroundImageUrl: convertToWebp(backgroundResult.url), garageId: garageObj._id, isUpdateDB: isUpdateDB});
         
     } catch (error) {
         console.log(error);
