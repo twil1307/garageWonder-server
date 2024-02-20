@@ -38,12 +38,7 @@ const writeFileCloud = async () => {
             });
         }));
 
-        console.log(backgroundResult.url);
-        console.log(extractUrlCloudinary(garagesResult));
-
         const garageObj = JSON.parse(cachedCreatingGarage);
-
-        console.log(garageObj);
 
         if(garageObj.backgroundImage && garageObj.backgroundImage.includes(process.env.DEV_PUBLIC_URL)) {
             console.log("Is deleting file?")
@@ -65,13 +60,21 @@ const writeFileCloud = async () => {
         garageObj.backgroundImage = backgroundResult.url;
 
         console.log(garageObj);
-        
-        // write data to redis
-        await redisClient.set(ipAddress, JSON.stringify(garageObj), 'EX', CACHING_CREATING_GARAGE_TIME)
 
+        const isCachedDataExisted = await redisClient.get(ipAddress);
+
+        if (isCachedDataExisted) {
+            // write data to redis
+            await redisClient.set(ipAddress, JSON.stringify(garageObj), 'EX', CACHING_CREATING_GARAGE_TIME)
+        } else {
+            // if there is no garage in redis - which mean that it is saved to DB 
+            // => update it in the DB
+            
+        }
+        
         console.log('Finish uploading image to cloudinary');
 
-        parentPort.postMessage({imagesInst: imgInstSavingMongoose.imagesInst, garageId: garageObj._id});
+        parentPort.postMessage({imagesInst: imgInstSavingMongoose.imagesInst, imagesUrls: imgInstSavingMongoose.imagesUrls, garageId: garageObj._id});
         
     } catch (error) {
         console.log(error);
@@ -107,7 +110,6 @@ const extractUrlCloudinary = (imagesPath) => {
 
 const retryUploading = async () => {
     const { retry } = workerData;
-    console.log(workerData);
     let retryCounter = 0;
 
     while(retryCounter < retry) {

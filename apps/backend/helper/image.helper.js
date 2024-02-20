@@ -7,6 +7,8 @@ import fs from 'fs';
 import sharp from 'sharp'
 import dotenv from 'dotenv';
 import { fileURLToPath } from "url";
+import { dbNative } from "../config/database.js";
+import mongoose from "mongoose";
 dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
@@ -15,12 +17,12 @@ const __dirname = path.dirname(__filename);
 export const getMultipleImageMongooseInst = async (imagesPath, session, garageId, isUploadLocal = false) => {
   console.log(imagesPath);
   const imagesId = [];
+  const imagesUrls = [];
   const imagesInst = imagesPath.map(image => {
       const mongoId = new Types.ObjectId();
       imagesId.push(mongoId);
-      const pathImage = !isUploadLocal ? convertUrlPathWithSize(image, HOME_IMAGE_SIZE.width, HOME_IMAGE_SIZE.height) : image;
-      // const pathImage = image;
-      return {_id: mongoId.toString(), path: pathImage, garageId: garageId}
+      imagesUrls.push(image);
+      return {_id: mongoId.toString(), path: image, garageId: garageId}
   });
 
   console.log(imagesInst);
@@ -33,7 +35,7 @@ export const getMultipleImageMongooseInst = async (imagesPath, session, garageId
       insertOption.session = session;
   }
 
-  return {imagesId, imagesInst: imagesInst || [], insertOption};
+  return {imagesId, imagesInst: imagesInst || [], insertOption, imagesUrls: imagesUrls || []};
 }
 
 export const saveMultipleImageMongoose = async (imagesPath, session, garageId, isUploadLocal = false) => {
@@ -65,33 +67,50 @@ export const saveMultipleImageMongoose = async (imagesPath, session, garageId, i
 }
 
 export const saveMultipleImageWithSizeMongoose = async (imagesPath, session, garageId, isUploadLocal = false) => {
-  console.log(imagesPath);
-  const imagesId = [];
-  const imagesInst = [];
-  
-  imagesPath.forEach((image) => {
-    TOTAL_IMAGE_SIZE.forEach((size) => {
-      const mongoId = new Types.ObjectId();
-      imagesId.push(mongoId);
-      const pathImage = !isUploadLocal ? convertUrlPathWithSize(image, size.width, size.height) : image;
+  try {
+    console.log(imagesPath);
+    const imagesId = [];
+    const imagesInst = [];
+    
+    imagesPath.forEach((image) => {
+      TOTAL_IMAGE_SIZE.forEach((size) => {
+        const mongoId = new Types.ObjectId();
+        imagesId.push(mongoId);
+        const pathImage = !isUploadLocal ? convertUrlPathWithSize(image, size.width, size.height) : image;
 
-      imagesInst.push({_id: mongoId, url: pathImage, garageId: garageId, width: size.width, height: size.height})
+        imagesInst.push({_id: mongoId, url: pathImage, garageId: mongoose.Types.ObjectId(garageId), width: size.width, height: size.height})
+      })
     })
-  })
 
-  const insertOption = {
-      rawResult: true
+    const insertOption = {
+        rawResult: true
+    }
+
+    if (session) {
+        insertOption.session = session;
+    }
+
+    console.log(imagesInst);
+
+    // bulk write
+    const bulkOps = imagesInst.map(el => ({
+      insertOne: {
+        document: el
+      }
+    }));
+
+    const collection = dbNative.collection('images');
+
+    await collection.bulkWrite(bulkOps);
+
+    // await Image.insertMany(imagesInst, insertOption);
+
+    console.log('Insert successfully');
+
+    return imagesId;
+  } catch (error) {
+    throw new Error(error);
   }
-
-  if (session) {
-      insertOption.session = session;
-  }
-
-  await Image.insertMany(imagesInst, insertOption);
-
-  console.log('Insert successfully');
-
-  return imagesId;
 }
 
 export const saveSingleImageLocalBase64 = async (ipAddress, bufferData, index) => {
@@ -127,7 +146,7 @@ export const saveMultipleImagesLocalBase64 = async (ipAddress, bufferDataArr) =>
 
 // resize image by url
 export const convertUrlPathWithSize = (urlStr, width = HOME_IMAGE_SIZE.width, height = HOME_IMAGE_SIZE.height) => {
-    const splitedPath = urlStr.split('upload');
+    const splitedPath = removeDimensionsFromURL(urlStr).split('upload');
 
     return convertToWebp(`${splitedPath[0]}upload/w_${width},h_${height}${splitedPath[1]}`);
 }
@@ -238,4 +257,15 @@ export const getImagesDevPublicUrlIncludedAndDeleted = async (garageId) => {
     } catch (error) {
         console.log('Delete failed with error: ', error);
     }
+}
+
+function removeDimensionsFromURL(url) {
+  console.log(url)
+  // Define the pattern to match "w_{number},h_{number}"
+  var pattern = /w_\d+,h_\d+/;
+
+  // Use replace() to remove the matched pattern from the URL
+  var cleanedURL = url.replace(pattern, '');
+
+  return cleanedURL;
 }

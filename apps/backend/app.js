@@ -9,6 +9,8 @@ import connectRedis from './config/redis.js';
 import globalErrorHandler from './utils/globalErrorHandler.js';
 import { fileURLToPath } from 'url'
 import apiRouter from './routes/index.js';
+import dotenv from 'dotenv';
+dotenv.config()
 
 // Database configuration ----------------------------
 import setupDatabase from './config/database.js';
@@ -30,7 +32,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(
   cors({
     credentials: true,
-    origin: process.env.FRONTEND_URL ?? "http://localhost:3000",
+    origin: process.env.FRONTEND_URL ?? "https://localhost:5173",
     optionsSuccessStatus: 200,
   })
 );

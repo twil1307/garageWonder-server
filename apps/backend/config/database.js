@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
-import { set, connect } from 'mongoose';
+import pkg from 'mongoose';
+const { set, connect, connection } = pkg;
 
 // eslint-disable-next-line no-undef
 const MONGOURI = process.env.PROD_STATUS === 'DEV' ? process.env.MONGODB_URI_DEV : process.env.MONGODB_URI_PROD;
@@ -16,5 +17,7 @@ const connectDB = async () => {
         process.exit(1);
     }
 };
+
+export const dbNative = connection;
 
 export default connectDB;

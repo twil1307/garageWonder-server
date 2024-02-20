@@ -20,6 +20,7 @@ import { getUserLeftMostIpAddress } from '../helper/userService.js';
 import { Worker } from 'worker_threads';
 import { getWorkerPath } from '../utils/filePath.js';
 import Image from '../models/image.model.js';
+import { DETAIL_IMAGE_SIZE } from '../enum/garage.enum.js';
 
 /**
  * @POST
@@ -106,6 +107,56 @@ export const getGarageById = catchAsync(async (req, res) => {
   return res.status(200).json(dataResponse(respGarage, 200, 'Get garage successfully'));
 })
 
+/**
+ * @GET
+ * @Name: get garage image by id
+ */
+export const getGarageImageById = catchAsync(async (req, res) => {
+  const { garageId } = req.params;
+
+  console.log(garageId);
+
+  const respGarage = await Image.find({
+    $and: [
+      {garageId: garageId},
+      
+    ]
+  });
+
+  console.log(respGarage);
+
+  if(!respGarage || respGarage.length === 0) {
+    throw new AppError('Garage not existed', 400);
+  }
+
+  return res.status(200).json(dataResponse(respGarage, 200, 'Get garage successfully'));
+})
+
+/**
+ * @GET
+ * @Name: get garage image by id
+ */
+export const getGarageBasicInfo = catchAsync(async (req, res) => {
+  const { garageId } = req.params;
+
+  console.log(garageId);
+
+  const respGarage = await Image.find({
+    $and: [
+      {garageId: garageId},
+      
+    ]
+  });
+
+  console.log(respGarage);
+
+  if(!respGarage || respGarage.length === 0) {
+    throw new AppError('Garage not existed', 400);
+  }
+
+  return res.status(200).json(dataResponse(respGarage, 200, 'Get garage successfully'));
+})
+
 
 /**
  * @GET
@@ -165,13 +216,11 @@ export const memoryStorageUpload = async (req, res) => {
       localUploadWorker.on('message', async (data) => {
         console.log(data);
         // await Image.insertMany(data.imagesInst)
-        await saveMultipleImageWithSizeMongoose(data.imagesInst, undefined, data.garageId, false);
+        await saveMultipleImageWithSizeMongoose(data.imagesUrls, undefined, data.garageId, false);
         console.log('upload cloud done');
       });
 
-      return res.status(200).json({
-        message: 'Add image successfully'
-      });
+      return res.status(200).json(dataResponse(null, 200, 'Uploading image is pending!!'));
     }
   } catch (error) {
     console.log(error);
@@ -189,9 +238,7 @@ export const initialSaveGarage = catchAsync(async (req, res, next) => {
     
   await redisClient.set(getUserLeftMostIpAddress(ipAddress), JSON.stringify(newGarage), 'EX', 3600);
   
-  return res.status(200).json({
-    message: 'Save redis successfully'
-  })
+  return res.status(200).json(dataResponse(null, 200, 'Initial create hotel successfully!!'));
   
 })
 
@@ -200,7 +247,7 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
 
   const getGarage = await redisClient.get(getUserLeftMostIpAddress(ipAddress));
 
-  const newGarageParse = new Garage(JSON.parse(getGarage));
+  const newGarageParse = JSON.parse(getGarage);
 
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -210,7 +257,7 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
     const newGarage = new Garage(req.body);
 
     const listServiceIdInstertd = await saveMultipleGarageServices(req.body.service, newGarage._id, session);
-    newGarage._id = getGarage._id;
+    newGarage._id = newGarageParse._id;
     newGarage.service = listServiceIdInstertd;
     newGarage.rules = JSON.parse(req.body.rules);
     newGarage.district = JSON.parse(req.body.district);

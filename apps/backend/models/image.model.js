@@ -5,8 +5,7 @@ const imageSchema = new Schema(
   {
     url: {
       type: String,
-      required: [true, "Image url is required"],
-      unique: true,
+      required: [true, "Image url is required"]
     },
     garageId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -15,7 +14,7 @@ const imageSchema = new Schema(
     width: {
       type: Number
     },
-    heigh: {
+    height: {
       type: Number
     }
   },

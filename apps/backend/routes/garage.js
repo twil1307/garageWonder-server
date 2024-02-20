@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { createInitialGarage, createNewGarage, getAdditionalService, getGarageById, getListGarages, initialSaveGarage, memoryStorageUpload } from '../controller/garage.controller.js';
+import { createInitialGarage, createNewGarage, getAdditionalService, getGarageById, getGarageImageById, getListGarages, initialSaveGarage, memoryStorageUpload } from '../controller/garage.controller.js';
 import { formDataRetrieve, garageImageUploader, memoryStorage } from '../helper/uploadImg.js'
 var router = Router();
 import path from 'path';
@@ -28,36 +28,9 @@ router.get('/additionalService', getAdditionalService);
 //   })
 // })
 
-const funcTest = async () => {
-  const randomValue = Math.random();
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      if (randomValue < 0.7) {
-        // Simulate a successful operation 70% of the time
-        resolve('Operation successful');
-      } else {
-        reject(new Error('Operation failed'));
-      }
-    }, 2000);
-  });
-}
-
-const retryUploading = async (retry) => {
-  let retryCounter = 0;
-
-  while(retryCounter < (retry || 1)) {
-      console.log(`try #${retryCounter}`)
-      try {
-          await funcTest();
-          break;
-      } catch (err) {
-          console.log(`Attemp retry ${retryCounter} failed`);
-      }
-      retryCounter++;
-  }
-}
-
 router.get('/:garageId', getGarageById);
+
+router.get('/images/:garageId', getGarageImageById);
 
 router.post('/image',
   memoryStorage.fields([
