@@ -13,7 +13,7 @@ import { retrieveNewGarageImage } from '../helper/garage.helper.js'
 import { deleteMultipleImagesCloudinary, saveMultipleGarageServices } from '../helper/service.helper.js';
 import dataResponse from '../utils/dataResponse.js';
 import { convertMultipleUrlPathWithSize, convertToWebp, saveMultipleImageMongoose, saveMultipleImageWithSizeMongoose } from '../helper/image.helper.js';
-import { mainPipeline } from '../pipeline/garage.pipeline.js';
+import { getGarageBasicInfoPipeline, getGarageServicePipeline, mainPipeline } from '../pipeline/garage.pipeline.js';
 import uploadFileQueue from '../jobs/image.job.js';
 import {redisClient} from '../config/redis.js'
 import { getUserLeftMostIpAddress } from '../helper/userService.js';
@@ -21,6 +21,7 @@ import { Worker } from 'worker_threads';
 import { getWorkerPath } from '../utils/filePath.js';
 import Image from '../models/image.model.js';
 import { DETAIL_IMAGE_SIZE, IMAGE_UPLOADING_STATUS } from '../enum/garage.enum.js';
+import Service from '../models/service.model.js';
 
 /**
  * @POST
@@ -123,36 +124,37 @@ export const getGarageImageById = catchAsync(async (req, res) => {
     ]
   });
 
-  console.log(respGarage);
-
-  if(!respGarage || respGarage.length === 0) {
-    throw new AppError('Garage not existed', 400);
-  }
-
-  return res.status(200).json(dataResponse(respGarage, 200, 'Get garage successfully'));
+  return res.status(200).json(dataResponse(respGarage, 200, 'Get garage image successfully'));
 })
 
 /**
  * @GET
- * @Name: get garage image by id
+ * @Name: get garage basic info by id
  */
 export const getGarageBasicInfo = catchAsync(async (req, res) => {
   const { garageId } = req.params;
 
   console.log(garageId);
 
-  const respGarage = await Image.find({
-    $and: [
-      {garageId: garageId},
-      
-    ]
-  });
+  const getGarageBasicInfoQuery = getGarageBasicInfoPipeline(garageId);
 
-  console.log(respGarage);
+  const respGarage = await Garage.aggregate(getGarageBasicInfoQuery);
 
-  if(!respGarage || respGarage.length === 0) {
-    throw new AppError('Garage not existed', 400);
-  }
+  return res.status(200).json(dataResponse(respGarage, 200, 'Get garage successfully'));
+})
+
+/**
+ * @GET
+ * @Name: get garage service by id
+ */
+export const getGarageService = catchAsync(async (req, res) => {
+  const { garageId } = req.params;
+
+  console.log(garageId);
+
+  const getGarageServiceQuery = getGarageServicePipeline(garageId);
+
+  const respGarage = await Service.aggregate(getGarageServiceQuery);
 
   return res.status(200).json(dataResponse(respGarage, 200, 'Get garage successfully'));
 })
@@ -281,7 +283,7 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
 
     const newGarage = new Garage(req.body);
 
-    const listServiceIdInstertd = req.body.service ? await saveMultipleGarageServices(req.body.service, newGarage._id, session) : null;
+    const listServiceIdInstertd = req.body.service ? await saveMultipleGarageServices(req.body.service, newGarageParse._id, session) : null;
     newGarage._id = newGarageParse._id;
     newGarage.service = listServiceIdInstertd ?? null;
     newGarage.rules = JSON.parse(req.body.rules || null);

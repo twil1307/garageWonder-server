@@ -11,7 +11,9 @@ export const saveMultipleGarageServices = async (listServices, garageId, session
         const mongoId = new Types.ObjectId();
         servicesId.push(mongoId);
         const { _id, ...restOfService } = service;
-        return {_id: mongoId, garageId, ...restOfService}
+        const createdAt = new Date().getTime();
+        const updatedAt = new Date().getTime();
+        return {_id: mongoId, garageId, createdAt, updatedAt, ...restOfService}
     })
 
     await Service.insertMany(listServicesMongo, {

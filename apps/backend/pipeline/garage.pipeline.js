@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { HOME_IMAGE_SIZE } from "../enum/garage.enum.js";
 import { convertUrlPathWithSize } from "../helper/image.helper.js";
 
@@ -145,8 +146,124 @@ const customPathTransformQuery = (width = HOME_IMAGE_SIZE.width, height = HOME_I
     }
 }
 
-const testUpperCase = (str) => {
-    const urlStr = str;
-    const splitedPath = urlStr.split('upload');
-    return splitedPath[0];
+export const getGarageBasicInfoPipeline = (garageId) => {
+    return [
+        {
+          $match: {
+            _id: mongoose.Types.ObjectId(garageId),
+          },
+        },
+        {
+          $lookup: {
+            from: "additionalservices",
+            localField: "additionalServices",
+            foreignField: "_id",
+            as: "additionalServices",
+          },
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "userId",
+            foreignField: "_id",
+            as: "garageOwner",
+          },
+        },
+        {
+          $unwind: "$garageOwner"
+        },
+        {
+          $lookup: {
+            from: "users",
+            localField: "staff",
+            foreignField: "_id",
+            as: "staff"
+          }
+        },
+        {
+            $unwind: "$staff",
+          },
+          {
+            $group: {
+              _id: {
+                _id: "$_id",
+                name: "$name",
+                description: "$description",
+                defaultSlot: "$defaultSlot",
+                openAt: "$openAt",
+                closeAt: "$closeAt",
+                checkin: "$checkin",
+                checkout: "$checkout",
+                additionalFee: "$additionalFee",
+                restrictCheckInDate:
+                  "$restrictCheckInDate",
+                rules: "$rules",
+                rating: "$rating",
+                location: "$location.coordinates",
+                backgroundImage: "$backgroundImage",
+                additionalServices: "$additionalServices",
+                garageOwner: "$garageOwner",
+              },
+              staff: {
+                $push: {
+                  _id: "$staff._id",
+                  displayName: "$staff.displayName",
+                  photoURL: "$staff.photoURL",
+                },
+              },
+            },
+          },
+          {
+            $project: {
+              _id: "$_id._id",
+              name: "$_id.name",
+              description: "$_id.description",
+              defaultSlot: "$_id.defaultSlot",
+              openAt: "$_id.openAt",
+              closeAt: "$_id.closeAt",
+              checkin: "$_id.checkin",
+              checkout: "$_id.checkout",
+              additionalFee: "$_id.additionalFee",
+              restrictCheckInDate: "$_id.restrictCheckInDate",
+              rules: "$_id.rules",
+              staff: "$_id.staff",
+              rating: "$_id.rating",
+              location: "$_id.location",
+              backgroundImage: "$_id.backgroundImage",
+              additionalServices: "$_id.additionalServices",
+              garageOwner: "$_id.garageOwner",
+              staff: 1
+            },
+        }
+    ]   
+};
+
+export const getGarageServicePipeline = (garageId) => {
+    return [
+        {
+          $match: {
+            garageId: mongoose.Types.ObjectId(garageId),
+          }
+        },
+        {
+          $lookup: {
+            from: "categories",
+            localField: "categoryId",
+            foreignField: "_id",
+            as: "category"
+          }
+        },
+        {
+          $unwind: "$category"
+        },
+        {
+          $project: {
+            __v: 0,
+            garageId: 0,
+            "category.createdAt": 0,
+            "category.updatedAt": 0,
+            "category.__v": 0,
+          }
+        }
+    ]
 }
