@@ -21,4 +21,11 @@ export const TOTAL_IMAGE_SIZE = [
     DETAIL_IMAGE_SIZE
 ]
 
+export const IMAGE_UPLOADING_STATUS = {
+    INITIAL: 0, // not upload image yet
+    PENDING: 1, // uploading
+    SUCCESS: 2, // uploaded
+    FAIL: 3 // failed
+}
+
 export const CACHING_CREATING_GARAGE_TIME = 60 * 60 // 60 min

@@ -48,7 +48,7 @@ router.post('/',
   garageImageUploader.fields([
     { name: "backgroundImage", maxCount: 1 },
     { name: "garageImage", maxCount: 10 }
-  ]), 
+  ]),
   createNewGarage);
 
 router.get('/', getListGarages);

@@ -1,7 +1,7 @@
 import { parentPort, workerData } from 'worker_threads'
 import { redisClient } from '../config/redis.js';
 import { cloudinaryInst } from '../helper/uploadImg.js';
-import { CACHING_CREATING_GARAGE_TIME } from '../enum/garage.enum.js';
+import { CACHING_CREATING_GARAGE_TIME, IMAGE_UPLOADING_STATUS } from '../enum/garage.enum.js';
 import { convertToWebp, deleteFileInfolder, deleteMultipleFileInFolder, getImagesDevPublicUrlIncluded, getImagesDevPublicUrlIncludedAndDeleted, getMultipleImageMongooseInst, saveMultipleImageMongoose } from '../helper/image.helper.js';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
@@ -11,17 +11,17 @@ dotenv.config();
 const writeFileCloud = async () => {
     try {
         
-        const { backgroundDataURI, garageDataURIs, ipAddress, cachedCreatingGarage } = workerData;
+        const { backgroundDataURI, garageDataURIs, ipAddress } = workerData;
 
         if(backgroundDataURI && garageDataURIs && ipAddress) {
             console.log("All parameter matched");
         }
 
+        const cachedCreatingGarage = await redisClient.get(ipAddress);
         console.log('Ready to upload image to cloudinary for ip: ' + ipAddress);
 
         if (!cachedCreatingGarage) {
             console.log('Cannot find any garage creating in progress, aborting receive image...');
-            done();
             return;
         }
         
@@ -38,56 +38,36 @@ const writeFileCloud = async () => {
         }));
 
         const garageObj = JSON.parse(cachedCreatingGarage);
+        console.log(garageObj);
 
-        if(garageObj.backgroundImage && garageObj.backgroundImage.includes(process.env.DEV_PUBLIC_URL)) {
-            console.log("Is deleting file?")
-            deleteFileInfolder(garageObj.backgroundImage)
-        }
+        // if(garageObj.backgroundImage && garageObj.backgroundImage.includes(process.env.DEV_PUBLIC_URL)) {
+        //     console.log("Is deleting file?")
+        //     deleteFileInfolder(garageObj.backgroundImage)
+        // }
 
-        if(garageObj.images && garageObj.images.length > 0) {
-            console.log("Is deleting files list?")
-            const retrieveImagePath = await getImagesDevPublicUrlIncluded(garageObj._id);
+        // if(garageObj.images && garageObj.images.length > 0) {
+        //     console.log("Is deleting files list?")
+        //     const retrieveImagePath = await getImagesDevPublicUrlIncluded(garageObj._id);
 
-            if(retrieveImagePath.length > 0) {
-                deleteMultipleFileInFolder(retrieveImagePath);
-                await getImagesDevPublicUrlIncludedAndDeleted(garageObj._id);
-            }
-        }
+        //     if(retrieveImagePath.length > 0) {
+        //         deleteMultipleFileInFolder(retrieveImagePath);
+        //         await getImagesDevPublicUrlIncludedAndDeleted(garageObj._id);
+        //     }
+        // }
 
         const imgInstSavingMongoose = await handleGetImageToSave(extractUrlCloudinary(garagesResult), garageObj._id);
         garageObj.images = imgInstSavingMongoose.imagesId;
         garageObj.backgroundImage = backgroundResult.url;
+        garageObj.imageUploadingStatus = IMAGE_UPLOADING_STATUS.SUCCESS;
 
         console.log(garageObj);
 
-        const isCachedDataExisted = await redisClient.get(ipAddress);
-        let isUpdateDB = true;
-        if (isCachedDataExisted) {
             // write data to redis
-            await redisClient.set(ipAddress, JSON.stringify(garageObj), 'EX', CACHING_CREATING_GARAGE_TIME)
-            isUpdateDB = !isUpdateDB;
-        } 
-        // else {
-        //     // if there is no garage in redis - which mean that it is saved to DB 
-        //     // => update it in the DB
-        //     const query = {
-        //         _id: garageObj._id
-        //     };
-
-        //     const update = {
-        //         $set: {
-        //             images: garageObj.images,
-        //             backgroundImage: garageObj.backgroundImage
-        //         }
-        //     }
-
-        //     await Garage.findOneAndUpdate(query, update);
-        //     console.log('Update data in DB successfully')
-        // }
+        await redisClient.set(ipAddress, JSON.stringify(garageObj), 'EX', CACHING_CREATING_GARAGE_TIME)
         
         console.log('Finish uploading image to cloudinary');
 
-        parentPort.postMessage({imagesInst: imgInstSavingMongoose.imagesInst, imagesUrls: imgInstSavingMongoose.imagesUrls, backgroundImageUrl: convertToWebp(backgroundResult.url), garageId: garageObj._id, isUpdateDB: isUpdateDB});
+        parentPort.postMessage({imagesInst: imgInstSavingMongoose.imagesInst, imagesUrls: imgInstSavingMongoose.imagesUrls, backgroundImageUrl: convertToWebp(backgroundResult.url), garageId: garageObj._id});
         
     } catch (error) {
         console.log(error);

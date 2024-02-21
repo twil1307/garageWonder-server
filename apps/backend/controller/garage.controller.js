@@ -20,7 +20,7 @@ import { getUserLeftMostIpAddress } from '../helper/userService.js';
 import { Worker } from 'worker_threads';
 import { getWorkerPath } from '../utils/filePath.js';
 import Image from '../models/image.model.js';
-import { DETAIL_IMAGE_SIZE } from '../enum/garage.enum.js';
+import { DETAIL_IMAGE_SIZE, IMAGE_UPLOADING_STATUS } from '../enum/garage.enum.js';
 
 /**
  * @POST
@@ -203,7 +203,10 @@ export const memoryStorageUpload = async (req, res) => {
         garageImageURIs.push(garageDataURI)
       });
 
-      const cachedCreatingGarage = await redisClient.get(getUserLeftMostIpAddress(ipAddress));
+      const cachedCreatingGarage = JSON.parse(await redisClient.get(getUserLeftMostIpAddress(ipAddress)));
+      cachedCreatingGarage.imageUploadingStatus = IMAGE_UPLOADING_STATUS.PENDING;
+
+      await redisClient.set(ipAddress, JSON.stringify(cachedCreatingGarage), 'EX', 3600);
 
       const localUploadWorker = new Worker(publicPath, {
         workerData: {
@@ -211,7 +214,6 @@ export const memoryStorageUpload = async (req, res) => {
             garageDataURIs: garageImageURIs,
             ipAddress: ipAddress,
             isUploadLocal: false,
-            cachedCreatingGarage: cachedCreatingGarage,
             retry: 7
           },
       })
@@ -221,7 +223,9 @@ export const memoryStorageUpload = async (req, res) => {
         // await Image.insertMany(data.imagesInst)
         const imagesId = await saveMultipleImageWithSizeMongoose(data.imagesUrls, undefined, data.garageId, false);
 
-        if(data.isUpdateDB) {
+        const savedGarage = await Garage.findById(data.garageId);
+        console.log(savedGarage);
+        if(savedGarage) {
           const query = {
             _id: mongoose.Types.ObjectId(data.garageId)
           };
@@ -229,9 +233,10 @@ export const memoryStorageUpload = async (req, res) => {
           const update = {
             $set: {
               images: imagesId,
-              backgroundImage: data.backgroundImageUrl
+              backgroundImage: data.backgroundImageUrl,
+              imageUploadingStatus: IMAGE_UPLOADING_STATUS.SUCCESS
             }
-          }
+          };
     
           await Garage.findOneAndUpdate(query, update);
           console.log('Update data in DB successfully') 
@@ -280,6 +285,7 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
     newGarage._id = newGarageParse._id;
     newGarage.service = listServiceIdInstertd ?? null;
     newGarage.rules = JSON.parse(req.body.rules || null);
+    newGarage.imageUploadingStatus = newGarageParse.imageUploadingStatus;
     newGarage.additionalServices = JSON.parse(req.body.additionalServices).map((item) => mongoose.Types.ObjectId(item))
     const garageCoordinate = JSON.parse(req.body.location || null);
 
@@ -288,13 +294,13 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
     }
     newGarage.location = garageCoordinate;
     newGarage.backgroundImage = newGarageParse.backgroundImage ? convertToWebp(newGarageParse.backgroundImage) : null;
-    newGarage.images = newGarageParse.images;
+    newGarage.images = newGarageParse.images?.map(img => mongoose.Types.ObjectId(img));
 
     console.log(newGarage);
 
     await newGarage.save({ session });
 
-    await redisClient.del(getUserLeftMostIpAddress(ipAddress));
+    // await redisClient.del(getUserLeftMostIpAddress(ipAddress));
 
     // await session.abortTransaction();
     await session.commitTransaction();

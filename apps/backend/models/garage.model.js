@@ -143,6 +143,10 @@ const garageSchema = new Schema(
       ref: "User",
       default: []
     },
+    imageUploadingStatus: {
+      type: Number,
+      default: 0
+    },
     createdAt: {
       type: Number
     },
