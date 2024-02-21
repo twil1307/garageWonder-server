@@ -3,7 +3,7 @@ const Schema = mongoose.Schema;
 
 const garageSchema = new Schema(
   {
-    user: {
+    userId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
       ref: "User",
@@ -25,12 +25,10 @@ const garageSchema = new Schema(
       default: false
     },
     description: {
-      type: String,
-      required: [true, "Description required"],
+      type: String
     },
-    maximumSlot: {
-      type: Number,
-      required: [true, "Maximim garage slot required"],
+    defaultSlot: {
+      type: Number
     },
     dateSlot: [
       {
@@ -51,19 +49,19 @@ const garageSchema = new Schema(
     },
     openAt: {
       type: String,
-      required: true,
+      required: false,
     },
     closeAt: {
       type: String,
-      require: true
+      require: false
     },
     checkin: {
       type: String,
-      required: true,
+      required: false,
     },
     checkout: {
       type: String,
-      required: true,
+      required: false,
     },
     averagePrice: {
       type: Number,
