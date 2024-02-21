@@ -32,7 +32,7 @@ app.use(express.static(path.join(__dirname, "public")));
 app.use(
   cors({
     credentials: true,
-    origin: process.env.FRONTEND_URL ?? "https://localhost:5173",
+    origin: [process.env.FRONTEND_URL, "https://localhost:5173", "https://scaling-space-couscous-r4g5g7565wf5675-5173.app.github.dev"],
     optionsSuccessStatus: 200,
   })
 );
