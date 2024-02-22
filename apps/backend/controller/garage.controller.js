@@ -166,21 +166,30 @@ export const getGarageService = catchAsync(async (req, res) => {
  */
 export const getListGarages = catchAsync(async (req, res) => {
 
-  console.log(req.query);
+  const { name, priceRange, ratings, brands, distance, lng, lat, additional, itemPerCursor, nextCursor } = req.body;
 
-  const { garageName, serviceName, minPrice, maxPrice, findNearby, distance, lgt, lat } = req.query;
-
-  const pipeline = mainPipeline(garageName, serviceName, minPrice, maxPrice, findNearby || false, distance, lgt, lat);
+  const pipeline = mainPipeline(name, priceRange, ratings, brands, distance, lng, lat, additional, itemPerCursor, nextCursor);
 
   console.log(JSON.stringify(pipeline));
 
   const garages = await Garage.aggregate(pipeline);
 
-  const garagesImagesPath = convertMultipleUrlPathWithSize(garages);
+  const nextCusorResp = garages[garages.length - 1]?._id;
+  
+  return res.status(200).json(dataResponse(garages, 200, 'Get list garages successfuly!', nextCusorResp))
 
-  console.log(garagesImagesPath);
+  // const { garageName, serviceName, minPrice, maxPrice, findNearby, distance, lgt, lat } = req.query;
 
-  return res.status(200).json(dataResponse(garagesImagesPath, 200, 'Get list garage successfully'))
+
+  // console.log(JSON.stringify(pipeline));
+
+  // const garages = await Garage.aggregate(pipeline);
+
+  // const garagesImagesPath = convertMultipleUrlPathWithSize(garages);
+
+  // console.log(garagesImagesPath);
+
+  // return res.status(200).json(dataResponse(garagesImagesPath, 200, 'Get list garage successfully'))
 })
 
 export const memoryStorageUpload = async (req, res) => {

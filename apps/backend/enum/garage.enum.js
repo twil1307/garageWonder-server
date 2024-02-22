@@ -28,4 +28,6 @@ export const IMAGE_UPLOADING_STATUS = {
     FAIL: 3 // failed
 }
 
+export const ITEMS_PER_CURSOR = 2;
+
 export const CACHING_CREATING_GARAGE_TIME = 60 * 60 // 60 min
