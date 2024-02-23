@@ -1,5 +1,5 @@
 import mongoose, { mongo } from "mongoose";
-import { HOME_IMAGE_SIZE, ITEMS_PER_CURSOR } from "../enum/garage.enum.js";
+import { DETAIL_IMAGE_SIZE, HOME_IMAGE_SIZE, ITEMS_PER_CURSOR } from "../enum/garage.enum.js";
 import { convertUrlPathWithSize } from "../helper/image.helper.js";
 
 export const nearbyPipeline = (lgt, lat, distance) => ({
@@ -9,7 +9,7 @@ export const nearbyPipeline = (lgt, lat, distance) => ({
       coordinates: [Number.parseFloat(lgt), Number.parseFloat(lat)],
     },
     distanceField: "dist.calculated",
-    maxDistance: Number.parseFloat(distance),
+    maxDistance: Number.parseFloat(distance * 1000), // km -> m
     query: {},
     includeLocs: "dist.location",
     spherical: true,
@@ -42,6 +42,41 @@ export const projectPipeline = {
   },
 };
 
+const getSortCondition = (sort) => {
+  let sortCdt = null;
+  switch (sort) {
+    case "priceDesc":
+      sortCdt = {
+        "price.to": -1 
+      };
+
+      break;
+    case "priceAsc":
+      sortCdt = {
+        "price.from": 1 
+      };
+
+      break;
+    case "latest":
+      sortCdt = {
+        createdAt: -1
+      };
+
+      break;
+    case "oldest":
+      sortCdt = {
+        createdAt: 1
+      };
+
+      break;
+    
+    default:
+      break;
+  }
+
+  return sortCdt;
+}
+
 export const mainPipeline = (
   garageName = "",
   priceRange = { from: 0 },
@@ -52,7 +87,8 @@ export const mainPipeline = (
   lat,
   additional = [],
   itemPerCursor,
-  nextCursor
+  nextCursor,
+  sort
 ) => {
   // default distance = 10km
 
@@ -72,7 +108,7 @@ export const mainPipeline = (
     {
       $lookup: {
         from: "services",
-        localField: "service",
+        localField: "services",
         foreignField: "_id",
         as: "services",
       },
@@ -146,6 +182,12 @@ export const mainPipeline = (
           createdAt: "$createdAt",
           updatedAt: "$updatedAt",
         },
+        to: {
+          $max: "$services.highestPrice",
+        },
+        from: {
+          $min: "$services.lowestPrice",
+        },
         services: {
           $push: {
             _id: "$services._id",
@@ -163,6 +205,10 @@ export const mainPipeline = (
           $mergeObjects: [
             "$_id",
             {
+              price: {
+                from: "$from",
+                to: "$to",
+              },
               services: "$services",
             },
           ],
@@ -200,16 +246,65 @@ export const mainPipeline = (
         ]
       : []),
       {
+        $unwind: "$images",
+      },
+      {
+        $match: {
+          $and: [
+            {
+              "images.width": DETAIL_IMAGE_SIZE.width,
+            },
+            {
+              "images.height": DETAIL_IMAGE_SIZE.height,
+            },
+          ],
+        },
+      },
+      {
+        $group: {
+          _id: {
+            _id: "$_id",
+            name: "$name",
+            garageOwner: "$garageOwner",
+            description: "$description",
+            rating: "$rating",
+            location: "$location",
+            backgroundImage: "$backgroundImage",
+            createdAt: "$createdAt",
+            updatedAt: "$updatedAt",
+            price: "$price",
+          },
+          images: {
+            $push: {
+              _id: "$images._id",
+              url: "$images.url",
+              width: "$images.width",
+              height: "$images.height",
+            },
+          },
+        },
+      },
+      {
+        $replaceRoot: {
+          newRoot: {
+            $mergeObjects: [
+              "$_id",
+              {
+                images: "$images",
+              },
+            ],
+          },
+        },
+      },
+      {
         $sort: {
           _id: 1
         }
       },
     // sorting by createdAt
-    // {
-    //   $sort: {
-    //     createdAt: 1,
-    //   },
-    // },
+    ...(sort ? [{
+      $sort: getSortCondition(sort),
+    }] : []),
     //-------------------
     // pagination
     ...(nextCursor
@@ -224,7 +319,7 @@ export const mainPipeline = (
         ]
       : []),
     {
-      $limit: itemPerCursor || ITEMS_PER_CURSOR,
+      $limit: (itemPerCursor || ITEMS_PER_CURSOR) + 1,
     },
   ];
 

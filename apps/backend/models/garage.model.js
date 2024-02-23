@@ -128,7 +128,7 @@ const garageSchema = new Schema(
         ref: "GarageHighlight",
         default: [],
     },
-    service: {
+    services: {
         type: [mongoose.Schema.Types.ObjectId],
         ref: "Service",
         default: [],

@@ -12,15 +12,14 @@ import catchAsync from '../utils/catchAsync.js';
 import { retrieveNewGarageImage } from '../helper/garage.helper.js'
 import { deleteMultipleImagesCloudinary, saveMultipleGarageServices } from '../helper/service.helper.js';
 import dataResponse from '../utils/dataResponse.js';
-import { convertMultipleUrlPathWithSize, convertToWebp, saveMultipleImageMongoose, saveMultipleImageWithSizeMongoose } from '../helper/image.helper.js';
+import { convertToWebp, saveMultipleImageMongoose, saveMultipleImageWithSizeMongoose } from '../helper/image.helper.js';
 import { getGarageBasicInfoPipeline, getGarageServicePipeline, mainPipeline } from '../pipeline/garage.pipeline.js';
-import uploadFileQueue from '../jobs/image.job.js';
 import {redisClient} from '../config/redis.js'
 import { getUserLeftMostIpAddress } from '../helper/userService.js';
 import { Worker } from 'worker_threads';
 import { getWorkerPath } from '../utils/filePath.js';
 import Image from '../models/image.model.js';
-import { DETAIL_IMAGE_SIZE, IMAGE_UPLOADING_STATUS } from '../enum/garage.enum.js';
+import { IMAGE_UPLOADING_STATUS, ITEMS_PER_CURSOR } from '../enum/garage.enum.js';
 import Service from '../models/service.model.js';
 
 /**
@@ -37,8 +36,8 @@ export const createNewGarage =  catchAsync(async (req, res) => {
 
     const newGarage = new Garage(req.body);
 
-    const listServiceIdInstertd = await saveMultipleGarageServices(req.body.service, newGarage._id, session);
-    newGarage.service = listServiceIdInstertd;
+    const listServiceIdInstertd = await saveMultipleGarageServices(req.body.services, newGarage._id, session);
+    newGarage.services = listServiceIdInstertd;
     newGarage.rules = JSON.parse(req.body.rules);
     newGarage.backgroundImage = backgroundImage || null;
     newGarage.images = await saveMultipleImageMongoose(garageImages, session) || [];
@@ -166,30 +165,20 @@ export const getGarageService = catchAsync(async (req, res) => {
  */
 export const getListGarages = catchAsync(async (req, res) => {
 
-  const { name, priceRange, ratings, brands, distance, lng, lat, additional, itemPerCursor, nextCursor } = req.body;
+  const { name, priceRange, ratings, brands, distance, lng, lat, additional, limit, cursor, sort } = req.body;
 
-  const pipeline = mainPipeline(name, priceRange, ratings, brands, distance, lng, lat, additional, itemPerCursor, nextCursor);
+  const pipeline = mainPipeline(name, priceRange, ratings, brands, distance, lng, lat, additional, limit, cursor, sort);
 
   console.log(JSON.stringify(pipeline));
 
   const garages = await Garage.aggregate(pipeline);
 
-  const nextCusorResp = garages[garages.length - 1]?._id;
-  
-  return res.status(200).json(dataResponse(garages, 200, 'Get list garages successfuly!', nextCusorResp))
+  const limitNum = limit || ITEMS_PER_CURSOR;
+  const cursorRes = (garages.length - 1 < limitNum) ? garages[garages.length - 1]?._id : garages[garages.length - 2]?._id
+  const nextCusorResp = (garages.length - 1 === limitNum) ? garages[garages.length - 1]?._id : null;
+  const respGarage = (garages.length <= limitNum) ? garages : garages.slice(0, -1);
 
-  // const { garageName, serviceName, minPrice, maxPrice, findNearby, distance, lgt, lat } = req.query;
-
-
-  // console.log(JSON.stringify(pipeline));
-
-  // const garages = await Garage.aggregate(pipeline);
-
-  // const garagesImagesPath = convertMultipleUrlPathWithSize(garages);
-
-  // console.log(garagesImagesPath);
-
-  // return res.status(200).json(dataResponse(garagesImagesPath, 200, 'Get list garage successfully'))
+  return res.status(200).json(dataResponse(respGarage, 200, 'Get list garages successfuly!', cursorRes, nextCusorResp, limitNum, respGarage.length))
 })
 
 export const memoryStorageUpload = async (req, res) => {
@@ -292,9 +281,9 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
 
     const newGarage = new Garage(req.body);
 
-    const listServiceIdInstertd = req.body.service ? await saveMultipleGarageServices(req.body.service, newGarageParse._id, session) : null;
+    const listServiceIdInstertd = req.body.services ? await saveMultipleGarageServices(req.body.services, newGarageParse._id, session) : null;
     newGarage._id = newGarageParse._id;
-    newGarage.service = listServiceIdInstertd ?? null;
+    newGarage.services = listServiceIdInstertd ?? null;
     newGarage.rules = JSON.parse(req.body.rules || null);
     newGarage.imageUploadingStatus = newGarageParse.imageUploadingStatus;
     newGarage.additionalServices = JSON.parse(req.body.additionalServices).map((item) => mongoose.Types.ObjectId(item))
