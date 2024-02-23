@@ -47,13 +47,15 @@ const getSortCondition = (sort) => {
   switch (sort) {
     case "priceDesc":
       sortCdt = {
-        "price.to": -1 
+        "price.to": -1,
+        name: 1 
       };
 
       break;
     case "priceAsc":
       sortCdt = {
-        "price.from": 1 
+        "price.from": 1,
+        name: 1
       };
 
       break;
@@ -296,15 +298,14 @@ export const mainPipeline = (
           },
         },
       },
-      {
-        $sort: {
-          _id: 1
-        }
-      },
     // sorting by createdAt
     ...(sort ? [{
       $sort: getSortCondition(sort),
-    }] : []),
+    }] : [{
+      $sort: {
+        createdAt: 1
+      }
+    }]),
     //-------------------
     // pagination
     ...(nextCursor

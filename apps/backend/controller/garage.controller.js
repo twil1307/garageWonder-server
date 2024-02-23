@@ -9,7 +9,7 @@ import AdditionalService from '../models/additionalService.model.js'
 import mongoose from 'mongoose';
 import AppError from '../utils/appError.js';
 import catchAsync from '../utils/catchAsync.js';
-import { retrieveNewGarageImage } from '../helper/garage.helper.js'
+import { getGaragePagination, retrieveNewGarageImage } from '../helper/garage.helper.js'
 import { deleteMultipleImagesCloudinary, saveMultipleGarageServices } from '../helper/service.helper.js';
 import dataResponse from '../utils/dataResponse.js';
 import { convertToWebp, saveMultipleImageMongoose, saveMultipleImageWithSizeMongoose } from '../helper/image.helper.js';
@@ -19,7 +19,7 @@ import { getUserLeftMostIpAddress } from '../helper/userService.js';
 import { Worker } from 'worker_threads';
 import { getWorkerPath } from '../utils/filePath.js';
 import Image from '../models/image.model.js';
-import { IMAGE_UPLOADING_STATUS, ITEMS_PER_CURSOR } from '../enum/garage.enum.js';
+import { DETAIL_IMAGE_SIZE, IMAGE_UPLOADING_STATUS, ITEMS_PER_CURSOR } from '../enum/garage.enum.js';
 import Service from '../models/service.model.js';
 
 /**
@@ -119,7 +119,8 @@ export const getGarageImageById = catchAsync(async (req, res) => {
   const respGarage = await Image.find({
     $and: [
       {garageId: garageId},
-      
+      {width: DETAIL_IMAGE_SIZE.width},
+      {height: DETAIL_IMAGE_SIZE.height},
     ]
   });
 
@@ -174,11 +175,14 @@ export const getListGarages = catchAsync(async (req, res) => {
   const garages = await Garage.aggregate(pipeline);
 
   const limitNum = limit || ITEMS_PER_CURSOR;
-  const cursorRes = (garages.length - 1 < limitNum) ? garages[garages.length - 1]?._id : garages[garages.length - 2]?._id
-  const nextCusorResp = (garages.length - 1 === limitNum) ? garages[garages.length - 1]?._id : null;
-  const respGarage = (garages.length <= limitNum) ? garages : garages.slice(0, -1);
 
-  return res.status(200).json(dataResponse(respGarage, 200, 'Get list garages successfuly!', cursorRes, nextCusorResp, limitNum, respGarage.length))
+  if(garages.length <= 0) {
+    return res.status(400).json(dataResponse([], 200, 'Get list garages successfuly!', null, null, limitNum, garages.length))
+  }
+
+  let {cursorRes, nextCusorResp, respGarage}= getGaragePagination(garages, limitNum);
+
+  return res.status(200).json(dataResponse(respGarage, 200, 'Get list garages successfuly!', cursorRes, nextCusorResp, limitNum, respGarage.length || 0))
 })
 
 export const memoryStorageUpload = async (req, res) => {
