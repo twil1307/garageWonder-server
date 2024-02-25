@@ -313,7 +313,7 @@ export const mainPipeline = (
           {
             $match: {
               _id: {
-                $gt: mongoose.Types.ObjectId(nextCursor),
+                $gte: mongoose.Types.ObjectId(nextCursor),
               },
             },
           },
