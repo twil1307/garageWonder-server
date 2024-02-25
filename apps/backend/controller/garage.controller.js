@@ -12,7 +12,7 @@ import catchAsync from '../utils/catchAsync.js';
 import { getGaragePagination, retrieveNewGarageImage } from '../helper/garage.helper.js'
 import { deleteMultipleImagesCloudinary, saveMultipleGarageServices } from '../helper/service.helper.js';
 import dataResponse from '../utils/dataResponse.js';
-import { convertToWebp, saveMultipleImageMongoose, saveMultipleImageWithSizeMongoose } from '../helper/image.helper.js';
+import { convertSingleImageToMultipleSizes, convertToWebp, saveMultipleImageMongoose, saveMultipleImageWithSizeMongoose } from '../helper/image.helper.js';
 import { getGarageBasicInfoPipeline, getGarageServicePipeline, mainPipeline } from '../pipeline/garage.pipeline.js';
 import {redisClient} from '../config/redis.js'
 import { getUserLeftMostIpAddress } from '../helper/userService.js';
@@ -237,10 +237,12 @@ export const memoryStorageUpload = async (req, res) => {
           const update = {
             $set: {
               images: imagesId,
-              backgroundImage: data.backgroundImageUrl,
+              backgroundImage: convertSingleImageToMultipleSizes(data.backgroundImageUrl),
               imageUploadingStatus: IMAGE_UPLOADING_STATUS.SUCCESS
             }
           };
+
+          console.log(update);
     
           await Garage.findOneAndUpdate(query, update);
           console.log('Update data in DB successfully') 
@@ -280,7 +282,7 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
-  console.log(typeof req.body.district);
+  console.log(newGarageParse);
   try {
 
     const newGarage = new Garage(req.body);
@@ -297,7 +299,7 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
       garageCoordinate.type = 'Point'
     }
     newGarage.location = garageCoordinate;
-    newGarage.backgroundImage = newGarageParse.backgroundImage ? convertToWebp(newGarageParse.backgroundImage) : null;
+    newGarage.backgroundImage = newGarageParse.backgroundImage && newGarageParse.backgroundImage.length > 0 ? convertSingleImageToMultipleSizes(newGarageParse.backgroundImage) : [];
     newGarage.images = newGarageParse.images?.map(img => mongoose.Types.ObjectId(img));
 
     console.log(newGarage);

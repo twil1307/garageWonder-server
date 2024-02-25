@@ -13,22 +13,32 @@ const garageSchema = new Schema(
       required: [true, "Garage name is required"],
       unique: true,
     },
-    backgroundImage: {
-      type: String
-    },
+    backgroundImage: [
+      {
+        url: {
+          type: String,
+        },
+        width: {
+          type: Number,
+        },
+        height: {
+          type: Number,
+        },
+      },
+    ],
     status: {
       type: Number,
       default: 0,
     },
     isVerify: {
       type: Boolean,
-      default: false
+      default: false,
     },
     description: {
-      type: String
+      type: String,
     },
     defaultSlot: {
-      type: Number
+      type: Number,
     },
     dateSlot: [
       {
@@ -41,11 +51,11 @@ const garageSchema = new Schema(
     address: { type: String },
     location: {
       type: {
-        type: String
+        type: String,
       },
       coordinates: {
-        type: [Number]
-      }
+        type: [Number],
+      },
     },
     openAt: {
       type: String,
@@ -53,13 +63,13 @@ const garageSchema = new Schema(
     },
     closeAt: {
       type: String,
-      require: false
+      require: false,
     },
-    checkin: {
+    checkIn: {
       type: String,
       required: false,
     },
-    checkout: {
+    checkOut: {
       type: String,
       required: false,
     },
@@ -87,7 +97,7 @@ const garageSchema = new Schema(
     categories: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "Category",
-      default: []
+      default: [],
     },
     images: {
       type: [mongoose.Schema.Types.ObjectId],
@@ -107,8 +117,8 @@ const garageSchema = new Schema(
       {
         fee: { type: Number, default: 0 },
         type: {
-          type: String
-        }
+          type: String,
+        },
       },
     ],
     restrictCheckInDate: {
@@ -124,14 +134,14 @@ const garageSchema = new Schema(
       },
     ],
     hightlight: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: "GarageHighlight",
-        default: [],
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "GarageHighlight",
+      default: [],
     },
     services: {
-        type: [mongoose.Schema.Types.ObjectId],
-        ref: "Service",
-        default: [],
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Service",
+      default: [],
     },
     additionalServices: {
       type: [mongoose.Schema.Types.ObjectId],
@@ -141,42 +151,42 @@ const garageSchema = new Schema(
     staff: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "User",
-      default: []
+      default: [],
     },
     imageUploadingStatus: {
       type: Number,
-      default: 0
+      default: 0,
     },
     createdAt: {
-      type: Number
+      type: Number,
     },
     updatedAt: {
-      type: Number
-    }
-  },
+      type: Number,
+    },
+  }
   // {
   //   timestamps: true,
   // }
 );
 
 // Create a 2dsphere index on the location field
-garageSchema.index({ location: '2dsphere' });
+garageSchema.index({ location: "2dsphere" });
 
 garageSchema.path("rules").default([]);
 garageSchema.path("additionalFee").default([]);
 
-garageSchema.pre('save', function(next) {
+garageSchema.pre("save", function (next) {
   this.createdAt = new Date().getTime();
   this.updatedAt = new Date().getTime();
 
   next();
 });
 
-garageSchema.pre('updateOne', function(next) {
+garageSchema.pre("updateOne", function (next) {
   this.updatedAt = new Date().getTime();
 
   next();
-})
+});
 
 const Garage = mongoose.model("Garage", garageSchema);
 

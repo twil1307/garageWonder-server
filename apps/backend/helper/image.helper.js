@@ -66,6 +66,17 @@ export const saveMultipleImageMongoose = async (imagesPath, session, garageId, i
     return imagesId;
 }
 
+export const convertSingleImageToMultipleSizes = (imagesPath) => {
+  const imagesInst = TOTAL_IMAGE_SIZE.map((size) => {
+    const pathImage = convertUrlPathWithSize(imagesPath, size.width, size.height);
+    return {url: pathImage, width: size.width, height: size.height};
+  })
+
+  console.log(imagesInst);
+
+  return imagesInst;
+}
+
 export const saveMultipleImageWithSizeMongoose = async (imagesPath, session, garageId, isUploadLocal = false) => {
   try {
     console.log(imagesPath);

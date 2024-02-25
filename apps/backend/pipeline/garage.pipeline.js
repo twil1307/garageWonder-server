@@ -168,10 +168,11 @@ export const mainPipeline = (
           name: "$name",
           userId: "$userId",
           description: "$description",
+          address: "$address",
           openAt: "$openAt",
           closeAt: "$closeAt",
-          checkin: "$checkin",
-          checkout: "$checkout",
+          checkIn: "$checkIn",
+          checkOut: "$checkOut",
           images: "$images",
           reviews: "$reviews",
           vouchers: "$vouchers",
@@ -225,17 +226,18 @@ export const mainPipeline = (
         as: "images",
       },
     },
-    {
-      $lookup: {
-        from: "users",
-        localField: "userId",
-        foreignField: "_id",
-        as: "garageOwner",
-      },
-    },
-    {
-      $unwind: "$garageOwner",
-    },
+    // Join garage owner ===================================
+    // {
+    //   $lookup: {
+    //     from: "users",
+    //     localField: "userId",
+    //     foreignField: "_id",
+    //     as: "garageOwner",
+    //   },
+    // },
+    // {
+    //   $unwind: "$garageOwner",
+    // },
     ...(additional && additional.length > 0
       ? [
           {
@@ -254,13 +256,28 @@ export const mainPipeline = (
         $match: {
           $and: [
             {
-              "images.width": DETAIL_IMAGE_SIZE.width,
+              "images.width": HOME_IMAGE_SIZE.width,
             },
             {
-              "images.height": DETAIL_IMAGE_SIZE.height,
+              "images.height": HOME_IMAGE_SIZE.height,
             },
           ],
         },
+      },
+      {
+        $unwind: "$backgroundImage",
+      },
+      {
+        $match: {
+          $and: [
+            {
+              "backgroundImage.width": HOME_IMAGE_SIZE.width,
+            },
+            {
+              "backgroundImage.height": HOME_IMAGE_SIZE.height,
+            },
+          ],
+        }
       },
       {
         $group: {
@@ -269,6 +286,7 @@ export const mainPipeline = (
             name: "$name",
             garageOwner: "$garageOwner",
             description: "$description",
+            address: "$address",
             rating: "$rating",
             location: "$location",
             backgroundImage: "$backgroundImage",
@@ -297,6 +315,12 @@ export const mainPipeline = (
             ],
           },
         },
+      },
+      {
+        $project: {
+          "location.type": 0,
+          "backgroundImage._id": 0
+        }
       },
     // sorting by createdAt
     ...(sort ? [{
@@ -364,79 +388,88 @@ export const getGarageBasicInfoPipeline = (garageId) => {
         as: "additionalServices",
       },
     },
-    {
-      $lookup: {
-        from: "users",
-        localField: "userId",
-        foreignField: "_id",
-        as: "garageOwner",
-      },
-    },
-    {
-      $unwind: "$garageOwner",
-    },
-    {
-      $lookup: {
-        from: "users",
-        localField: "staff",
-        foreignField: "_id",
-        as: "staff",
-      },
-    },
-    {
-      $unwind: "$staff",
-    },
-    {
-      $group: {
-        _id: {
-          _id: "$_id",
-          name: "$name",
-          description: "$description",
-          defaultSlot: "$defaultSlot",
-          openAt: "$openAt",
-          closeAt: "$closeAt",
-          checkin: "$checkin",
-          checkout: "$checkout",
-          additionalFee: "$additionalFee",
-          restrictCheckInDate: "$restrictCheckInDate",
-          rules: "$rules",
-          rating: "$rating",
-          location: "$location.coordinates",
-          backgroundImage: "$backgroundImage",
-          additionalServices: "$additionalServices",
-          garageOwner: "$garageOwner",
-        },
-        staff: {
-          $push: {
-            _id: "$staff._id",
-            displayName: "$staff.displayName",
-            photoURL: "$staff.photoURL",
-          },
-        },
-      },
-    },
+    // join garage owner and staff =====================================
+    // {
+    //   $lookup: {
+    //     from: "users",
+    //     localField: "userId",
+    //     foreignField: "_id",
+    //     as: "garageOwner",
+    //   },
+    // },
+    // {
+    //   $unwind: "$garageOwner",
+    // },
+    // {
+    //   $lookup: {
+    //     from: "users",
+    //     localField: "staff",
+    //     foreignField: "_id",
+    //     as: "staff",
+    //   },
+    // },
+    // {
+    //   $unwind: "$staff",
+    // },
+    // {
+    //   $group: {
+    //     _id: {
+    //       _id: "$_id",
+    //       name: "$name",
+    //       description: "$description",
+    //       defaultSlot: "$defaultSlot",
+    //       openAt: "$openAt",
+    //       closeAt: "$closeAt",
+    //       checkIn: "$checkIn",
+    //       checkOut: "$checkOut",
+    //       additionalFee: "$additionalFee",
+    //       restrictCheckInDate: "$restrictCheckInDate",
+    //       rules: "$rules",
+    //       rating: "$rating",
+    //       location: "$location",
+    //       backgroundImage: "$backgroundImage",
+    //       additionalServices: "$additionalServices",
+    //       garageOwner: "$garageOwner",
+    //     },
+    //     staff: {
+    //       $push: {
+    //         _id: "$staff._id",
+    //         displayName: "$staff.displayName",
+    //         photoURL: "$staff.photoURL",
+    //       },
+    //     },
+    //   },
+    // },
+    // {
+    //   $project: {
+    //     _id: "$_id._id",
+    //     name: "$_id.name",
+    //     description: "$_id.description",
+    //     defaultSlot: "$_id.defaultSlot",
+    //     openAt: "$_id.openAt",
+    //     closeAt: "$_id.closeAt",
+    //     checkin: "$_id.checkIn",
+    //     checkout: "$_id.checkOut",
+    //     additionalFee: "$_id.additionalFee",
+    //     restrictCheckInDate: "$_id.restrictCheckInDate",
+    //     rules: "$_id.rules",
+    //     staff: "$_id.staff",
+    //     rating: "$_id.rating",
+    //     location: "$_id.location",
+    //     backgroundImage: "$_id.backgroundImage",
+    //     additionalServices: "$_id.additionalServices",
+    //     garageOwner: "$_id.garageOwner",
+    //     staff: 1,
+    //   },
+    // },
+    //=============================================================
     {
       $project: {
-        _id: "$_id._id",
-        name: "$_id.name",
-        description: "$_id.description",
-        defaultSlot: "$_id.defaultSlot",
-        openAt: "$_id.openAt",
-        closeAt: "$_id.closeAt",
-        checkin: "$_id.checkin",
-        checkout: "$_id.checkout",
-        additionalFee: "$_id.additionalFee",
-        restrictCheckInDate: "$_id.restrictCheckInDate",
-        rules: "$_id.rules",
-        staff: "$_id.staff",
-        rating: "$_id.rating",
-        location: "$_id.location",
-        backgroundImage: "$_id.backgroundImage",
-        additionalServices: "$_id.additionalServices",
-        garageOwner: "$_id.garageOwner",
-        staff: 1,
-      },
-    },
+        "location.type": 0,
+        "images": 0,
+        "services": 0
+      }
+    }
   ];
 };
 
