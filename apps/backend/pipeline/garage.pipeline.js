@@ -388,6 +388,21 @@ export const getGarageBasicInfoPipeline = (garageId) => {
         as: "additionalServices",
       },
     },
+    {
+      $unwind: "$backgroundImage",
+    },
+    {
+      $match: {
+        $and: [
+          {
+            "backgroundImage.width": HOME_IMAGE_SIZE.width,
+          },
+          {
+            "backgroundImage.height": HOME_IMAGE_SIZE.height,
+          },
+        ],
+      }
+    },
     // join garage owner and staff =====================================
     // {
     //   $lookup: {
@@ -467,7 +482,8 @@ export const getGarageBasicInfoPipeline = (garageId) => {
       $project: {
         "location.type": 0,
         "images": 0,
-        "services": 0
+        "services": 0,
+        "backgroundImage._id": 0
       }
     }
   ];

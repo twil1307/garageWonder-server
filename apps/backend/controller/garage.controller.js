@@ -177,12 +177,12 @@ export const getListGarages = catchAsync(async (req, res) => {
   const limitNum = limit || ITEMS_PER_CURSOR;
 
   if(garages.length <= 0) {
-    return res.status(400).json(dataResponse([], 200, 'Get list garages successfuly!', null, null, limitNum, garages.length))
+    return res.status(400).json(dataResponse([], 200, 'Get list garages successful!', null, null, limitNum, garages.length))
   }
 
   let {cursorRes, nextCusorResp, respGarage}= getGaragePagination(garages, limitNum);
 
-  return res.status(200).json(dataResponse(respGarage, 200, 'Get list garages successfuly!', cursorRes, nextCusorResp, limitNum, respGarage.length || 0))
+  return res.status(200).json(dataResponse(respGarage, 200, 'Get list garages successfully!', cursorRes, nextCusorResp, limitNum, respGarage.length || 0))
 })
 
 export const memoryStorageUpload = async (req, res) => {
