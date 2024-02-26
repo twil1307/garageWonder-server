@@ -1,6 +1,10 @@
 import { Router } from 'express';
-import { createNewCategory, getAllCategories } from '../controller/category.controller.js';
+import { createNewCategory, getAllCategories, getCategoryById, getCategoryByMultipleIds } from '../controller/category.controller.js';
 var router = Router();
+
+router.get('/getMultiple', getCategoryByMultipleIds);
+
+router.get('/:id', getCategoryById);
 
 router.get('/', getAllCategories);
 
