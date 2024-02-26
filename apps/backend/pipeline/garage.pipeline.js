@@ -483,7 +483,8 @@ export const getGarageBasicInfoPipeline = (garageId) => {
         "location.type": 0,
         "images": 0,
         "services": 0,
-        "backgroundImage._id": 0
+        "backgroundImage._id": 0,
+        "categories": 0
       }
     }
   ];
