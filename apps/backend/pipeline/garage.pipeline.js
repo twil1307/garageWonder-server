@@ -496,17 +496,17 @@ export const getGarageServicePipeline = (garageId) => {
         garageId: mongoose.Types.ObjectId(garageId),
       },
     },
-    {
-      $lookup: {
-        from: "categories",
-        localField: "categoryId",
-        foreignField: "_id",
-        as: "category",
-      },
-    },
-    {
-      $unwind: "$category",
-    },
+    // {
+    //   $lookup: {
+    //     from: "categories",
+    //     localField: "categoryId",
+    //     foreignField: "_id",
+    //     as: "category",
+    //   },
+    // },
+    // {
+    //   $unwind: "$category",
+    // },
     {
       $project: {
         __v: 0,
