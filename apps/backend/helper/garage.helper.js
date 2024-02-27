@@ -31,26 +31,24 @@ export const retrieveAllNewGarageImagePath = (req) => {
 
 export const getGaragePagination = (garages, limitNum) => {
   let cursorRes = null;
-  let nextCusorResp = null;
+  let nextCursorResp = null;
   let respGarage = null;
 
   if(limitNum < garages.length) {
-    // cursorRes = garages[garages.length - 2]._id;
-    // nextCusorResp = garages[garages.length - 1]._id;
     cursorRes = garages[0]._id;
-    nextCusorResp = garages[garages.length - 1]._id;
+    nextCursorResp = garages[garages.length - 1]._id;
     respGarage = garages.slice(0, -1);
   }
 
   if(limitNum >= garages.length) {
     cursorRes = garages[0]._id;
-    nextCusorResp = null
+    nextCursorResp = null
     respGarage = garages;
   }
 
   return {
     cursorRes,
-    nextCusorResp,
+    nextCursorResp,
     respGarage,
   }
 }

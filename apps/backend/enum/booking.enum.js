@@ -1,0 +1,6 @@
+export const BOOKING_ESTIMATE_TYPE = {
+    SAME_DAY: 1,
+    EXACT_DAY: 2,
+    COMPLETE_IN_RANGE: 3,
+    CANT_ESTIMATE: 4
+};

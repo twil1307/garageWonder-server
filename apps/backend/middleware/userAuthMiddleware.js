@@ -1,69 +1,30 @@
-require("dotenv").config();
-import mongoose from "mongoose";
-import catchAsync from "../utils/catchAsync";
-import * as jwt from "jsonwebtoken"
-import * as User from "../models/user.model"
+import catchAsync from "../utils/catchAsync.js";
+import User from "../models/user.model.js"
+import { firebaseAdmin } from "../config/firebase.js";
+import dataResponse from "../utils/dataResponse.js";
 
-const isExactUser = catchAsync(async (req, res, next) => {
-  const userId = mongoose.Types.ObjectId(req.params.userId);
-  const userObjId = req.user._id;
+export const hasRole = (...role) => {
+  return catchAsync(async (req, res, next) => {
+    const { idtoken } = req.headers;
 
-  if (!userId.equals(userObjId)) {
-    return res
-      .status(401)
-      .json({ error: "You are not authorized to access this" });
-  } else {
-    next();
-  }
-});
+    const userLoginId = await firebaseAdmin.auth().verifyIdToken(idtoken);
 
-const hasRole = (...role) => {
-  return (req, res, next) => {
-    const currentUserRole = req.user.role;
-    if (role.includes(currentUserRole)) {
+    if(!userLoginId) {
+      return res.status(400).json(dataResponse(null, 400, "You are not authorized!"));
+    }
+    
+    const currentUser = await User.findOne({
+      uid: userLoginId.uid
+    });
+
+    if(!currentUser) {
+      return res.status(400).json(dataResponse(null, 400, "This user is not belong to the system!"));
+    }
+
+    if(role.includes(currentUser.role)) {
       next();
     } else {
-      return res.status(401).json({
-        error: "You are not authorized to access this",
-      });
+      return res.status(400).json(dataResponse(null, 400, "You are not authorized!"));
     }
-  };
+  });
 };
-
-const isUserAvailable = catchAsync(async (req, res, next) => {
-  try {
-    const { refreshToken } = req.cookies;
-
-    if (!refreshToken) {
-      return next();
-    }
-
-    const token = refreshToken.replace("Refresh ", "");
-
-    jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, decoded) => {
-      if (err) {
-        return next();
-      }
-
-      const idFind = decoded._id;
-
-      User.findOne({ _id: idFind })
-        .select("-password")
-        .then((user) => {
-          if (user) {
-            req.user = user;
-            return next();
-          } else {
-            return next();
-          }
-        })
-        .catch((err) => {
-          next();
-        });
-    });
-  } catch (error) {
-    return next();
-  }
-});
-
-module.exports = { isExactUser, hasRole, isExactHost, isUserAvailable };

@@ -133,7 +133,7 @@ const garageSchema = new Schema(
         },
       },
     ],
-    hightlight: {
+    highlight: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: "GarageHighlight",
       default: [],

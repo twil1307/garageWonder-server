@@ -36,8 +36,8 @@ export const createNewGarage =  catchAsync(async (req, res) => {
 
     const newGarage = new Garage(req.body);
 
-    const listServiceIdInstertd = await saveMultipleGarageServices(req.body.services, newGarage._id, session);
-    newGarage.services = listServiceIdInstertd;
+    const listServiceIdInsertId = await saveMultipleGarageServices(req.body.services, newGarage._id, session);
+    newGarage.services = listServiceIdInsertId;
     newGarage.rules = JSON.parse(req.body.rules);
     newGarage.backgroundImage = backgroundImage || null;
     newGarage.images = await saveMultipleImageMongoose(garageImages, session) || [];
@@ -77,9 +77,9 @@ export const createNewGarage =  catchAsync(async (req, res) => {
  * @Name: get additional service
  */
 export const getAdditionalService = catchAsync(async (_, res) => {
-  const listAditionalService = await AdditionalService.find({});
+  const listAdditionalService = await AdditionalService.find({});
 
-  return res.status(200).json(dataResponse(listAditionalService));
+  return res.status(200).json(dataResponse(listAdditionalService));
 });
 
 
@@ -180,9 +180,9 @@ export const getListGarages = catchAsync(async (req, res) => {
     return res.status(400).json(dataResponse([], 200, 'Get list garages successful!', null, null, limitNum, garages.length))
   }
 
-  let {cursorRes, nextCusorResp, respGarage}= getGaragePagination(garages, limitNum);
+  let {cursorRes, nextCursorResp, respGarage}= getGaragePagination(garages, limitNum);
 
-  return res.status(200).json(dataResponse(respGarage, 200, 'Get list garages successfully!', cursorRes, nextCusorResp, limitNum, respGarage.length || 0))
+  return res.status(200).json(dataResponse(respGarage, 200, 'Get list garages successfully!', cursorRes, nextCursorResp, limitNum, respGarage.length || 0))
 })
 
 export const memoryStorageUpload = async (req, res) => {
@@ -287,9 +287,9 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
 
     const newGarage = new Garage(req.body);
 
-    const listServiceIdInstertd = req.body.services ? await saveMultipleGarageServices(req.body.services, newGarageParse._id, session) : null;
+    const listServiceIdInsertId = req.body.services ? await saveMultipleGarageServices(req.body.services, newGarageParse._id, session) : null;
     newGarage._id = newGarageParse._id;
-    newGarage.services = listServiceIdInstertd ?? null;
+    newGarage.services = listServiceIdInsertId ?? null;
     newGarage.rules = JSON.parse(req.body.rules || null);
     newGarage.imageUploadingStatus = newGarageParse.imageUploadingStatus;
     newGarage.additionalServices = JSON.parse(req.body.additionalServices).map((item) => mongoose.Types.ObjectId(item))

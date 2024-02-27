@@ -395,10 +395,10 @@ export const getGarageBasicInfoPipeline = (garageId) => {
       $match: {
         $and: [
           {
-            "backgroundImage.width": HOME_IMAGE_SIZE.width,
+            "backgroundImage.width": DETAIL_IMAGE_SIZE.width,
           },
           {
-            "backgroundImage.height": HOME_IMAGE_SIZE.height,
+            "backgroundImage.height": DETAIL_IMAGE_SIZE.height,
           },
         ],
       }
@@ -415,68 +415,74 @@ export const getGarageBasicInfoPipeline = (garageId) => {
     // {
     //   $unwind: "$garageOwner",
     // },
-    // {
-    //   $lookup: {
-    //     from: "users",
-    //     localField: "staff",
-    //     foreignField: "_id",
-    //     as: "staff",
-    //   },
-    // },
-    // {
-    //   $unwind: "$staff",
-    // },
-    // {
-    //   $group: {
-    //     _id: {
-    //       _id: "$_id",
-    //       name: "$name",
-    //       description: "$description",
-    //       defaultSlot: "$defaultSlot",
-    //       openAt: "$openAt",
-    //       closeAt: "$closeAt",
-    //       checkIn: "$checkIn",
-    //       checkOut: "$checkOut",
-    //       additionalFee: "$additionalFee",
-    //       restrictCheckInDate: "$restrictCheckInDate",
-    //       rules: "$rules",
-    //       rating: "$rating",
-    //       location: "$location",
-    //       backgroundImage: "$backgroundImage",
-    //       additionalServices: "$additionalServices",
-    //       garageOwner: "$garageOwner",
-    //     },
-    //     staff: {
-    //       $push: {
-    //         _id: "$staff._id",
-    //         displayName: "$staff.displayName",
-    //         photoURL: "$staff.photoURL",
-    //       },
-    //     },
-    //   },
-    // },
-    // {
-    //   $project: {
-    //     _id: "$_id._id",
-    //     name: "$_id.name",
-    //     description: "$_id.description",
-    //     defaultSlot: "$_id.defaultSlot",
-    //     openAt: "$_id.openAt",
-    //     closeAt: "$_id.closeAt",
-    //     checkin: "$_id.checkIn",
-    //     checkout: "$_id.checkOut",
-    //     additionalFee: "$_id.additionalFee",
-    //     restrictCheckInDate: "$_id.restrictCheckInDate",
-    //     rules: "$_id.rules",
-    //     staff: "$_id.staff",
-    //     rating: "$_id.rating",
-    //     location: "$_id.location",
-    //     backgroundImage: "$_id.backgroundImage",
-    //     additionalServices: "$_id.additionalServices",
-    //     garageOwner: "$_id.garageOwner",
-    //     staff: 1,
-    //   },
-    // },
+    {
+      $lookup: {
+        from: "users",
+        localField: "staff",
+        foreignField: "_id",
+        as: "staff",
+      },
+    },
+    {
+      $unwind: "$staff",
+    },
+    {
+      $group: {
+        _id: {
+          _id: "$_id",
+          userId: "$userId",
+          name: "$name",
+          status: "$status",
+          description: "$description",
+          defaultSlot: "$defaultSlot",
+          dateSlot: "$dateSlot",
+          rating: "$rating",
+          openAt: "$openAt",
+          closeAt: "$closeAt",
+          vouchers: "$vouchers",
+          additionalFee: "$additionalFee",
+          restrictCheckInDate: "$restrictCheckInDate",
+          rules: "$rules",
+          rating: "$rating",
+          location: "$location",
+          address: "$address",
+          backgroundImage: "$backgroundImage",
+          additionalServices: "$additionalServices",
+        },
+        staff: {
+          $push: {
+            _id: "$staff._id",
+            displayName: "$staff.displayName",
+            photoURL: "$staff.photoURL",
+          },
+        },
+      },
+    },
+    {
+      $project: {
+        _id: "$_id._id",
+        userId: "$_id.userId",
+        status: "$_id.status",
+        name: "$_id.name",
+        description: "$_id.description",
+        defaultSlot: "$_id.defaultSlot",
+        dateSlot: "$_id.dateSlot",
+        openAt: "$_id.openAt",
+        closeAt: "$_id.closeAt",
+        defaultSlot: "$_id.defaultSlot",
+        additionalFee: "$_id.additionalFee",
+        restrictCheckInDate: "$_id.restrictCheckInDate",
+        rules: "$_id.rules",
+        staff: "$_id.staff",
+        rating: "$_id.rating",
+        location: "$_id.location",
+        address: "$_id.address",
+        backgroundImage: "$_id.backgroundImage",
+        additionalServices: "$_id.additionalServices",
+        garageOwner: "$_id.garageOwner",
+        staff: 1,
+      },
+    },
     //=============================================================
     {
       $project: {

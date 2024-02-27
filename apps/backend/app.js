@@ -10,6 +10,7 @@ import globalErrorHandler from './utils/globalErrorHandler.js';
 import { fileURLToPath } from 'url'
 import apiRouter from './routes/index.js';
 import dotenv from 'dotenv';
+import connectFireBase from './config/firebase.js'
 dotenv.config()
 
 // Database configuration ----------------------------
@@ -20,6 +21,7 @@ const __dirname = path.dirname(__filename);
 
 var app = express();
 connectRedis();
+connectFireBase();
 setupDatabase();
 
 app.use(logger('dev'));
