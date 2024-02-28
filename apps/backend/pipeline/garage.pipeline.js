@@ -227,17 +227,17 @@ export const mainPipeline = (
       },
     },
     // Join garage owner ===================================
-    // {
-    //   $lookup: {
-    //     from: "users",
-    //     localField: "userId",
-    //     foreignField: "_id",
-    //     as: "garageOwner",
-    //   },
-    // },
-    // {
-    //   $unwind: "$garageOwner",
-    // },
+    {
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "owner",
+      },
+    },
+    {
+      $unwind: "$owner",
+    },
     ...(additional && additional.length > 0
       ? [
           {
@@ -284,7 +284,7 @@ export const mainPipeline = (
           _id: {
             _id: "$_id",
             name: "$name",
-            garageOwner: "$garageOwner",
+            owner: "$owner",
             description: "$description",
             address: "$address",
             rating: "$rating",
@@ -319,7 +319,14 @@ export const mainPipeline = (
       {
         $project: {
           "location.type": 0,
-          "backgroundImage._id": 0
+          "backgroundImage._id": 0,
+          "owner.email": 0,
+          "owner.emailVerified": 0,
+          "owner.isAnonymous": 0,
+          "owner.role": 0,
+          "owner.favoriteGarage": 0,
+          "owner.__v": 0,
+          "owner.phoneNumber": 0
         }
       },
     // sorting by createdAt

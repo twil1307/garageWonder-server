@@ -8,8 +8,6 @@ import { getWorkerPath } from '../utils/filePath.js';
 
 router.get('/additionalService', getAdditionalService);
 
-router.get('/:garageId', getGarageById);
-
 router.get('/images/:garageId', getGarageImageById);
 
 router.get('/basicInfo/:garageId', getGarageBasicInfo);
@@ -34,6 +32,8 @@ router.post('/',
     { name: "garageImage", maxCount: 10 }
   ]),
   createNewGarage);
+
+router.get('/:garageId', getGarageById);
 
 router.get('/', getListGarages);
 

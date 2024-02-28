@@ -21,6 +21,7 @@ import { getWorkerPath } from '../utils/filePath.js';
 import Image from '../models/image.model.js';
 import { DETAIL_IMAGE_SIZE, IMAGE_UPLOADING_STATUS, ITEMS_PER_CURSOR } from '../enum/garage.enum.js';
 import Service from '../models/service.model.js';
+import { parseQueryParams } from '../utils/jsonParse.js';
 
 /**
  * @POST
@@ -165,8 +166,9 @@ export const getGarageService = catchAsync(async (req, res) => {
  * @Name: get garages list
  */
 export const getListGarages = catchAsync(async (req, res) => {
+  const parsedParams = parseQueryParams(req.query);
 
-  const { name, priceRange, ratings, brands, distance, lng, lat, additional, limit, cursor, sort } = req.body;
+  const { name, priceRange, ratings, brands, distance, lng, lat, additional, limit, cursor, sort } = parsedParams;
 
   const pipeline = mainPipeline(name, priceRange, ratings, brands, distance, lng, lat, additional, limit, cursor, sort);
 
@@ -182,7 +184,7 @@ export const getListGarages = catchAsync(async (req, res) => {
 
   let {cursorRes, nextCursorResp, respGarage}= getGaragePagination(garages, limitNum);
 
-  return res.status(200).json(dataResponse(respGarage, 200, 'Get list garages successfully!', cursorRes, nextCursorResp, limitNum, respGarage.length || 0))
+  return res.status(200).json(dataResponse(respGarage, 200, 'Get list garages successfully!', cursorRes, nextCursorResp, limitNum, respGarage.length || 0));
 })
 
 export const memoryStorageUpload = async (req, res) => {
