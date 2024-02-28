@@ -90,13 +90,18 @@ export const mainPipeline = (
   additional = [],
   itemPerCursor,
   nextCursor,
-  sort
+  sort,
+  userFavoriteGarage
 ) => {
   // default distance = 10km
 
   const additionalObjectId = additional.map((item) =>
     mongoose.Types.ObjectId(item)
   );
+
+  const favoriteGarageArr = userFavoriteGarage && Array.isArray(userFavoriteGarage) 
+                ? userFavoriteGarage.map((item) => mongoose.Types.ObjectId(item))
+                : [];
 
   let initialPipeline = [
     ...(distance && Number.parseInt(distance) > 0 && lng && lat
@@ -334,7 +339,8 @@ export const mainPipeline = (
       $sort: getSortCondition(sort),
     }] : [{
       $sort: {
-        createdAt: 1
+        createdAt: 1,
+        name: 1
       }
     }]),
     //-------------------
@@ -353,6 +359,21 @@ export const mainPipeline = (
     {
       $limit: (itemPerCursor || ITEMS_PER_CURSOR) + 1,
     },
+    ...(
+      userFavoriteGarage && Array.isArray(userFavoriteGarage) 
+      ? [
+        {
+          $addFields: {
+            isFavorite: {
+              $in: [
+                "$_id",
+                favoriteGarageArr
+            ]
+            }
+          }
+        }
+      ] : []
+    )
   ];
 
   return initialPipeline;

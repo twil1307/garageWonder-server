@@ -5,9 +5,15 @@ import dataResponse from "../utils/dataResponse.js";
 
 export const hasRole = (...role) => {
   return catchAsync(async (req, res, next) => {
-    const { idtoken } = req.headers;
+    const { authorization } = req.headers;
 
-    const userLoginId = await firebaseAdmin.auth().verifyIdToken(idtoken);
+    if(!authorization) {
+      return res.status(400).json(dataResponse(null, 400, "Please login!"));
+    }
+
+    const token = authorization.replace("Bearer ", "");
+
+    const userLoginId = await firebaseAdmin.auth().verifyIdToken(token);
 
     if(!userLoginId) {
       return res.status(400).json(dataResponse(null, 400, "You are not authorized!"));
@@ -22,7 +28,21 @@ export const hasRole = (...role) => {
     }
 
     if(role.includes(currentUser.role)) {
-      next();
+      req.user = currentUser;
+      return next();
+    } else {
+      return res.status(400).json(dataResponse(null, 400, "You are not authorized!"));
+    }
+  });
+};
+
+export const hasRoleWithData = (...role) => {
+  return catchAsync(async (req, res, next) => {
+
+    const currentUser = req.user;
+
+    if(role.includes(currentUser.role)) {
+      return next();
     } else {
       return res.status(400).json(dataResponse(null, 400, "You are not authorized!"));
     }

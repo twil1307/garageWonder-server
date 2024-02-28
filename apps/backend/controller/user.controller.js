@@ -147,8 +147,8 @@ export const getUserBookingHistory = catchAsync(async (req, res, next) => {});
 
 export const getUserFirebase = catchAsync(async (req, res, next) => {
 
-  const { token } = req.body;
-  console.log(token);
+  const { authorization } = req.headers;
+  const token = authorization.replace("Bearer ", "")
 
   const verifiedOne = await firebaseAdmin.auth().verifyIdToken(token);
 

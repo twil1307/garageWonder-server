@@ -12,7 +12,7 @@ import catchAsync from '../utils/catchAsync.js';
 import { getGaragePagination, retrieveNewGarageImage } from '../helper/garage.helper.js'
 import { deleteMultipleImagesCloudinary, saveMultipleGarageServices } from '../helper/service.helper.js';
 import dataResponse from '../utils/dataResponse.js';
-import { convertSingleImageToMultipleSizes, convertToWebp, saveMultipleImageMongoose, saveMultipleImageWithSizeMongoose } from '../helper/image.helper.js';
+import { convertSingleImageToMultipleSizes, saveMultipleImageMongoose, saveMultipleImageWithSizeMongoose } from '../helper/image.helper.js';
 import { getGarageBasicInfoPipeline, getGarageServicePipeline, mainPipeline } from '../pipeline/garage.pipeline.js';
 import {redisClient} from '../config/redis.js'
 import { getUserLeftMostIpAddress } from '../helper/userService.js';
@@ -21,6 +21,7 @@ import { getWorkerPath } from '../utils/filePath.js';
 import Image from '../models/image.model.js';
 import { DETAIL_IMAGE_SIZE, IMAGE_UPLOADING_STATUS, ITEMS_PER_CURSOR } from '../enum/garage.enum.js';
 import Service from '../models/service.model.js';
+import Users from '../models/user.model.js';
 
 /**
  * @POST
@@ -165,10 +166,11 @@ export const getGarageService = catchAsync(async (req, res) => {
  * @Name: get garages list
  */
 export const getListGarages = catchAsync(async (req, res) => {
+  const userFavouriteGarage = req?.user?.favoriteGarage || null;
 
   const { name, priceRange, ratings, brands, distance, lng, lat, additional, limit, cursor, sort } = req.body;
 
-  const pipeline = mainPipeline(name, priceRange, ratings, brands, distance, lng, lat, additional, limit, cursor, sort);
+  const pipeline = mainPipeline(name, priceRange, ratings, brands, distance, lng, lat, additional, limit, cursor, sort, userFavouriteGarage);
 
   console.log(JSON.stringify(pipeline));
 
@@ -321,5 +323,21 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
 
     throw new AppError(error.message, error.status);
   }
-
 })
+
+export const addOrRemoveFavorite = catchAsync(async (req, res, next) => {
+  const { garageId } = req.body;
+  const currentUser = await Users.findById(req.user.id);
+
+  if (!currentUser.favoriteGarage.includes(garageId)) {
+    currentUser.favoriteGarage.push(garageId);
+  } else {
+    // remove hotelId when found existed in array
+    currentUser.favoriteGarage.splice(
+      currentUser.favoriteGarage.indexOf(garageId),
+      1
+    );
+  }
+
+  await currentUser.save();
+});

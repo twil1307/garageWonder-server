@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { createInitialGarage, createNewGarage, getAdditionalService, getGarageBasicInfo, getGarageById, getGarageImageById, getGarageService, getListGarages, initialSaveGarage, memoryStorageUpload } from '../controller/garage.controller.js';
+import { addOrRemoveFavorite, createInitialGarage, createNewGarage, getAdditionalService, getGarageBasicInfo, getGarageById, getGarageImageById, getGarageService, getListGarages, initialSaveGarage, memoryStorageUpload } from '../controller/garage.controller.js';
 import { formDataRetrieve, garageImageUploader, memoryStorage } from '../helper/uploadImg.js'
 var router = Router();
-import path from 'path';
-import { Worker } from 'worker_threads';
-import { getWorkerPath } from '../utils/filePath.js';
+import { retrieveUserDataMiddleware } from '../middleware/userRetrieveDataMiddleware.js';
+import { hasRole } from '../middleware/userAuthMiddleware.js'
+import { USER } from '../enum/role.enum.js'
 
 router.get('/additionalService', getAdditionalService);
 
@@ -14,7 +14,7 @@ router.get('/basicInfo/:garageId', getGarageBasicInfo);
 
 router.get('/service/:garageId', getGarageService);
 
-router.post('/home', getListGarages);
+router.post('/home', retrieveUserDataMiddleware, getListGarages);
 
 router.post('/image',
   memoryStorage.fields([
@@ -23,6 +23,8 @@ router.post('/image',
   ]), 
   memoryStorageUpload
   );
+
+router.put('/favorite', hasRole(USER), addOrRemoveFavorite);
 
 router.post('/initGarage', initialSaveGarage);
 
