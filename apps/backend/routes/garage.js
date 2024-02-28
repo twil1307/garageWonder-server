@@ -14,6 +14,8 @@ router.get('/basicInfo/:garageId', getGarageBasicInfo);
 
 router.get('/service/:garageId', getGarageService);
 
+router.post('/home', getListGarages);
+
 router.post('/image',
   memoryStorage.fields([
     { name: 'backgroundImage', maxCount: 1 },
@@ -34,8 +36,5 @@ router.post('/',
   createNewGarage);
 
 router.get('/:garageId', getGarageById);
-
-router.get('/', getListGarages);
-
 
 export default router;
