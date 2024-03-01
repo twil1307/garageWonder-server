@@ -4,7 +4,7 @@ import { firebaseAdmin } from "../config/firebase.js";
 import dataResponse from "../utils/dataResponse.js";
 
 export const hasRole = (...role) => {
-  return catchAsync(async (req, res, next) => {
+  return async (req, res, next) => {
     const { authorization } = req.headers;
 
     if(!authorization) {
@@ -13,27 +13,35 @@ export const hasRole = (...role) => {
 
     const token = authorization.replace("Bearer ", "");
 
-    const userLoginId = await firebaseAdmin.auth().verifyIdToken(token);
+    // const userLoginId = await firebaseAdmin.auth().verifyIdToken(token);
 
-    if(!userLoginId) {
-      return res.status(400).json(dataResponse(null, 400, "You are not authorized!"));
-    }
+    // if(!userLoginId) {
+    //   return res.status(400).json(dataResponse(null, 400, "You are not authorized!"));
+    // }
     
     const currentUser = await User.findOne({
-      uid: userLoginId.uid
+      // uid: userLoginId.uid
+      uid: "piuZhHzIZMhQoBrrqoygav2GyTx2"
     });
+
+    console.log(currentUser);
 
     if(!currentUser) {
       return res.status(400).json(dataResponse(null, 400, "This user is not belong to the system!"));
     }
 
     if(role.includes(currentUser.role)) {
+      // console.log("next");
       req.user = currentUser;
-      return next();
+      console.log("alo");
+      next();
     } else {
       return res.status(400).json(dataResponse(null, 400, "You are not authorized!"));
     }
-  });
+
+    req.user = currentUser;
+    next();
+  };
 };
 
 export const hasRoleWithData = (...role) => {

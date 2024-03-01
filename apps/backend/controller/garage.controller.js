@@ -168,9 +168,9 @@ export const getGarageService = catchAsync(async (req, res) => {
 export const getListGarages = catchAsync(async (req, res) => {
   const userFavouriteGarage = req?.user?.favoriteGarage || null;
 
-  const { name, priceRange, ratings, brands, distance, lng, lat, additional, limit, cursor, sort } = req.body;
+  const { name, priceRange, ratings, brands, distance, lng, lat, additional, limit, cursor, sort, categoryId } = req.body;
 
-  const pipeline = mainPipeline(name, priceRange, ratings, brands, distance, lng, lat, additional, limit, cursor, sort, userFavouriteGarage);
+  const pipeline = mainPipeline(name, priceRange, ratings, brands, distance, lng, lat, additional, limit, cursor, sort, userFavouriteGarage, categoryId);
 
   console.log(JSON.stringify(pipeline));
 
@@ -328,6 +328,7 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
 export const addOrRemoveFavorite = catchAsync(async (req, res, next) => {
   const { garageId } = req.body;
   const currentUser = await Users.findById(req.user.id);
+  console.log("Here");
 
   if (!currentUser.favoriteGarage.includes(garageId)) {
     currentUser.favoriteGarage.push(garageId);

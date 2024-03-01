@@ -91,7 +91,8 @@ export const mainPipeline = (
   itemPerCursor,
   nextCursor,
   sort,
-  userFavoriteGarage
+  userFavoriteGarage,
+  categoryId
 ) => {
   // default distance = 10km
 
@@ -123,17 +124,22 @@ export const mainPipeline = (
     {
       $unwind: "$services",
     },
-    {
-      $lookup: {
-        from: "categories",
-        localField: "services.categoryId",
-        foreignField: "_id",
-        as: "services.categories",
-      },
-    },
-    {
-      $unwind: "$services.categories",
-    },
+    // {
+    //   $lookup: {
+    //     from: "categories",
+    //     localField: "services.categoryId",
+    //     foreignField: "_id",
+    //     as: "services.categories",
+    //   },
+    // },
+    // {
+    //   $unwind: "$services.categories",
+    // },
+    ...(categoryId ? [{
+      $match: {
+        "services.categoryId": mongoose.Types.ObjectId(categoryId)
+      }
+    }] : []),
     // filter by money range
     {
       $match: {
@@ -517,7 +523,6 @@ export const getGarageBasicInfoPipeline = (garageId) => {
         "location.type": 0,
         "images": 0,
         "services": 0,
-        "backgroundImage._id": 0,
         "categories": 0
       }
     }
