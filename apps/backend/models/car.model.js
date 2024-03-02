@@ -13,6 +13,10 @@ const carSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Brands",
   },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Users",
+  },
   model: {
     type: String,
   },
@@ -36,6 +40,6 @@ carSchema.pre("save", function (next) {
   next();
 });
 
-const Brand = mongoose.model("Cars", carSchema);
+const Car = mongoose.model("Cars", carSchema);
 
-export default Brand;
+export default Car;

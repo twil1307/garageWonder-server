@@ -57,6 +57,23 @@ const orderSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Cars",
   },
+  car: {
+    type: {
+      brandId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Cars",
+      },
+      model: {
+        type: String
+      },
+      releaseYear: {
+        type: Number
+      },
+      plateNumber: {
+        type: String
+      }
+    }
+  },
   serviceIds: {
     type: [mongoose.Schema.Types.ObjectId],
     ref: "Service",

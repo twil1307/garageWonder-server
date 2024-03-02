@@ -43,8 +43,8 @@ const garageSchema = new Schema(
     dateSlot: [
       {
         type: {
-          slot: { type: Number },
           date: { type: Number },
+          slot: { type: Number },
         },
       },
     ],
