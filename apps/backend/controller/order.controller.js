@@ -11,55 +11,12 @@ import orderPersistQueue from "../jobs/orderPersist.job.js";
 
 export const createNewOrder = catchAsync(async (req, res, next) => {
     
-    // orderQueue.add({
-    //     orderData: req.body
-    // }, {
-    //     // jobId: 'orderJob',
-    //     attempts: 5
-    // });
+    orderQueue.add({
+        orderData: req.body
+    }, {
+        attempts: 5
+    });
 
-    const newOrder = new Order(req.body);
-    // const newCar = new Car(req.body.car);
-
-    const orderDate = getBeginningOfTheDay(newOrder.orderTime);
-    const toDayTimeMil = new Date().getTime();
-
-    if(orderDate < toDayTimeMil) {
-        return res.status(200).json(dataResponse(null, 400, 'Date order must be equal or larger than today'))
-    }
-
-    const redisKey = `${newOrder.garageId}-${orderDate}`;
-
-    const getCachedGarage = await redisClient.get(redisKey);
-    if(!getCachedGarage) {
-        const cacheOrderData = [newOrder];
-        await redisClient.set(redisKey, JSON.stringify(cacheOrderData), 'EX', get3AmAfterBookingDayFromToday(orderDate) + hourToSecond(1));
-        
-        // set event for cron job - to persist data from redis to server
-        orderPersistQueue.add({
-            redisKey: redisKey
-        }, {
-            delay: get3AmAfterBookingDayFromToday(orderDate)
-        });
-
-        return res.status(200).json(dataResponse(null, 200, 'Your order has been recorded'));
-        
-    }
-
-    const parsedCachedOrder = JSON.parse(getCachedGarage);
-
-    const maximumDateSlot = await Garage.aggregate(getMaxSlotByDate(req.body.garageId, orderDate));
-
-    const slotLimit = maximumDateSlot[0].dateSlot;
-
-    if(slotLimit <= parsedCachedOrder.length) {
-        return res.status(400).json(dataResponse(null, 400, 'Garage if fully ordered'));
-    }
-
-    const remainingCacheTime = await redisClient.ttl(redisKey);
-    parsedCachedOrder.push(newOrder);
-    await redisClient.set(redisKey, JSON.stringify(parsedCachedOrder), 'EX', remainingCacheTime);
-    
     return res.status(200).json(dataResponse(null, 200, "Your order has been sent to garage Owner!!"));
 });
 

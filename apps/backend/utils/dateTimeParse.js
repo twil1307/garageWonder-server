@@ -53,6 +53,6 @@ export const get3AmAfterBookingDayFromToday = (dateTime) => {
 
     const delayInMils = tomorrow.getTime() - now.getTime();
 
-    // return delayInMils;
-    return 10000;
+    return delayInMils;
+    // return 10000;
 }

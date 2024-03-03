@@ -32,7 +32,9 @@
     "qrcode": "^1.5.3",
     "qs": "^6.5.2",
     "redis": "^4.6.12",
-    "sharp": "^0.33.2"
+    "sharp": "^0.33.2",
+    "socket.io": "^4.7.4",
+    "websocket": "^1.0.34"
   },
   "devDependencies": {
     "eslint": "^8.56.0"

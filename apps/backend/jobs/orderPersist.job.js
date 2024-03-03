@@ -42,7 +42,7 @@ orderPersistQueue.process(async (payload, done) => {
 });
 
 orderPersistQueue.on("completed", async (job, result) => {
-  console.log("Order completed");
+  console.log("Order persist completed");
   console.log(result);
   await job.remove();
 });
