@@ -1,5 +1,5 @@
 import Service from '../models/service.model.js'
-import { Types } from 'mongoose';
+import mongoose, { Types } from 'mongoose';
 import { cloudinaryInst } from './uploadImg.js';
 
 export const saveMultipleGarageServices = async (listServices, garageId, session) => {
@@ -13,7 +13,8 @@ export const saveMultipleGarageServices = async (listServices, garageId, session
         const { _id, ...restOfService } = service;
         const createdAt = new Date().getTime();
         const updatedAt = new Date().getTime();
-        return {_id: mongoId, garageId, createdAt, updatedAt, ...restOfService}
+        const brandIdsParse = service.brandIds.map(brand => mongoose.Types.ObjectId(brand));
+        return {_id: mongoId, garageId, createdAt, updatedAt, brandIds: brandIdsParse, ...restOfService}
     })
 
     await Service.insertMany(listServicesMongo, {

@@ -541,11 +541,11 @@ export const getGarageServicePipeline = (garageId) => {
         from: "categories",
         localField: "categoryId",
         foreignField: "_id",
-        as: "categoryId",
+        as: "category",
       },
     },
     {
-      $unwind: "$categoryId",
+      $unwind: "$category",
     },
     {
       $project: {
