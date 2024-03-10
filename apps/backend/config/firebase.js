@@ -17,7 +17,6 @@
 
 // let firebaseApp;
 
-
 // export const initializeAppFirebase = () => {
 //     try {
 //         firebaseApp = initializeApp(firebaseConfig);
@@ -34,23 +33,31 @@
 
 // export const getFirebaseApp = () => firebaseApp;
 
-import admin from 'firebase-admin'
+import admin from "firebase-admin";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const serviceAccount = require("./garage-wonder-firebase-adminsdk-tx6wt-7c639d7617.json");
+import { getFirestore } from "firebase-admin/firestore";
 
-
+let store = null;
 const connectFireBase = async () => {
-    try {
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-        });
-        console.log('Connect to firebase admin successfully!!');
-    } catch (error) {
-        console.log(error);
-    }
+  try {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      databaseURL:
+        "https://garage-wonder-default-rtdb.asia-southeast1.firebasedatabase.app/",
+    });
+
+    // store = getFirestore();
+
+    console.log('Connect firebase successfully');
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-export const firebaseAdmin = admin; 
+export let firebaseAdmin = admin;
+
+export const fireStore = store;
 
 export default connectFireBase;

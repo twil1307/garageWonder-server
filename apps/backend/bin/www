@@ -8,6 +8,7 @@
 import app from "../app.js";
 import http from 'http';
 import dotenv from 'dotenv';
+import { socketConnection } from "../config/websocket.js";
 
 dotenv.config();
 
@@ -22,7 +23,8 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-var server = http.createServer(app);
+export var server = http.createServer(app);
+socketConnection(server);
 /**
  * Listen on provided port, on all network interfaces.
  */

@@ -6,5 +6,4 @@ router.get('/:garageId', getAllGarages);
 
 router.post('/', createNewOrder);
 
-
 export default router;

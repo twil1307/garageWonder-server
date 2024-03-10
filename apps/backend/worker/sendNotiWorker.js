@@ -1,25 +1,29 @@
 import { parentPort, workerData } from 'worker_threads'
 import dotenv from 'dotenv';
-import { socketIO } from '../config/websocket.js';
+import { batchSendNotification } from '../utils/notification.js';
+import connectFireBase from '../config/firebase.js';
 dotenv.config();
 
 const sendNotification = async () => {
-    const data = workerData;
+    try {
+        // userId: requestOrders[0].userId,
+        // completedOrder: JSON.stringify(completedOrder),
+        // unCompletedOrder: JSON.stringify(unCompletedOrder)
+        await connectFireBase();
 
-    socketIO.on('connection', (socket) => {
-        socket.emit(data.userId, {
-            message: 'Your order has been successful',
-            confirmedOrder: data.completedOrder,
-            rejectedOrder: data.unCompletedOrder
-        })
+        const {completedOrder, unCompletedOrder} = workerData;
 
-        socket.on('disconnect', () => {
-            socket.disconnect();
-            console.log('User disconnected');
-        });
-    });
+        const completedOrderParsedData = JSON.parse(completedOrder);
+        const unCompletedOrderParsedData = JSON.parse(unCompletedOrder);
 
-    parentPort.postMessage({message: 'Send notification success'});
+        await batchSendNotification(completedOrderParsedData, unCompletedOrderParsedData);
+
+        parentPort.postMessage({message: 'Send notification success'});
+    } catch (error) {
+        console.log(error);
+        console.log("Error occurred in sendNotificationWorker")
+    }
+    
 }
 
 await sendNotification();
