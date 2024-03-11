@@ -31,9 +31,9 @@ export const batchSendNotification = async (completedOrder, unCompletedOrder) =>
     const docRef = fireStore.collection('rooms').doc('notifications');
 
     if(completedOrder && completedOrder.length > 0) {
-        completedOrder.forEach(item => {
-            const sentUserNotificationData = convertOrderToNotification(item, ORDER_ACCEPTED);
-            const sentGarageNotificationData = convertOrderToNotification(item, ORDER_ACCEPTED, true);
+        completedOrder.forEach((item, index) => {
+            const sentUserNotificationData = convertOrderToNotification(item, ORDER_ACCEPTED, false, index + 1);
+            const sentGarageNotificationData = convertOrderToNotification(item, ORDER_ACCEPTED, true, index + 1);
             
             const userRef = docRef.collection(item.userId.toString()).doc(sentUserNotificationData._id)
             const garageRef = docRef.collection(item.garageId.toString()).doc(sentGarageNotificationData._id)
@@ -44,8 +44,8 @@ export const batchSendNotification = async (completedOrder, unCompletedOrder) =>
     }
 
     if(unCompletedOrder && unCompletedOrder.length > 0) {
-        unCompletedOrder.forEach(item => {
-            const notificationData = convertOrderToNotification(item, ORDER_REJECTED);
+        unCompletedOrder.forEach((item, index) => {
+            const notificationData = convertOrderToNotification(item, ORDER_REJECTED, false, index + 1);
             
             const userRef = docRef.collection(item.userId.toString()).doc(notificationData._id)
         
@@ -56,7 +56,7 @@ export const batchSendNotification = async (completedOrder, unCompletedOrder) =>
     batch.commit();
 };
 
-const convertOrderToNotification = (order, status, isSentToGarage = false) => {
+const convertOrderToNotification = (order, status, isSentToGarage = false, count = 1) => {
     const newNotification = new Notification();
     const notificationClone = {...newNotification};
 
@@ -70,6 +70,7 @@ const convertOrderToNotification = (order, status, isSentToGarage = false) => {
     
     notificationClone._doc.content.orderId = order._id.toString();
     notificationClone._doc.content.status = status;
+    notificationClone._doc.createdAt = new Date().getTime() + count;
     
     if (isSentToGarage) {
         notificationClone._doc.content.message = "New order is coming!!";

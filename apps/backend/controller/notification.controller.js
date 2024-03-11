@@ -5,6 +5,7 @@ import { DEFAULT_NUMBER_NOTI_SHOW } from '../enum/notification.enum.js';
 import { getGaragePagination } from '../helper/garage.helper.js';
 import dataResponse from '../utils/dataResponse.js';
 import catchAsync from '../utils/catchAsync.js';
+import { getNotiPagination } from '../helper/notification.helper.js';
 
 export const sendNotificationManually = catchAsync(async (req, res, next) => {
     const { to, content } = req.body;
@@ -17,6 +18,7 @@ export const sendNotificationManually = catchAsync(async (req, res, next) => {
     newNoti._doc.content.orderId = content.orderId;
     newNoti._doc.content.status = content.status;
     newNoti._doc.content.message = content.message;
+    newNoti._doc.createdAt = new Date().getTime();
 
     console.log(newNoti);
 
@@ -39,11 +41,11 @@ export const getUserOrGarageNotification = catchAsync(async (req, res, next) => 
     const messageRef = fireStore.collection('rooms').doc('notifications').collection(currentId);
 
     let messagesQuery = messageRef
-        .orderBy("_id", "desc")
-        // .orderBy("createdAt", "desc");
+        .orderBy("createdAt", "desc");
         
     if(cursor) {
-        messagesQuery = messagesQuery.startAt(cursor);
+        const cursorNumber = Number.parseInt(cursor);
+        messagesQuery = messagesQuery.startAt(cursorNumber);
     }
 
     let limitNum = limit ? Number.parseInt(limit) : DEFAULT_NUMBER_NOTI_SHOW ;
@@ -60,9 +62,9 @@ export const getUserOrGarageNotification = catchAsync(async (req, res, next) => 
 
     if(result.length <= 0) {
         return res.status(200).json(dataResponse([], 200, 'Get list notifications successful!', null, null, limitNum, 0))
-      }
+    }
 
-    let {cursorRes, nextCursorResp, respGarage} = getGaragePagination(result, limitNum);
+    let {cursorRes, nextCursorResp, respGarage} = getNotiPagination(result, limitNum);
 
     return res.status(200).json(dataResponse(respGarage, 200, 'Get list garages successfully!', cursorRes, nextCursorResp, limitNum, respGarage.length || 0))
 
