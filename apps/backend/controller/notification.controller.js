@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { getFirestore } from 'firebase-admin/firestore';
 import Notification from '../models/notification.model.js';
 import { DEFAULT_NUMBER_NOTI_SHOW } from '../enum/notification.enum.js';
-import { getGaragePagination } from '../helper/garage.helper.js';
+import { getGaragePagination, getNotiPagination } from '../helper/garage.helper.js';
 import dataResponse from '../utils/dataResponse.js';
 import catchAsync from '../utils/catchAsync.js';
 
@@ -34,16 +34,16 @@ export const sendNotificationManually = catchAsync(async (req, res, next) => {
 export const getUserOrGarageNotification = catchAsync(async (req, res, next) => {
     const fireStore = getFirestore();
 
-    const { currentId, limit, nextCursor } = req.query;
+    const { currentId, limit, cursor } = req.query;
 
     const messageRef = fireStore.collection('rooms').doc('notifications').collection(currentId);
 
     let messagesQuery = messageRef
         .orderBy("_id", "desc")
-        .orderBy("createdAt", "desc");
+        // .orderBy("createdAt", "desc");
         
-    if(nextCursor) {
-        messagesQuery = messagesQuery.startAt(nextCursor);
+    if(cursor) {
+        messagesQuery = messagesQuery.startAt(cursor);
     }
 
     let limitNum = limit ? Number.parseInt(limit) : DEFAULT_NUMBER_NOTI_SHOW ;
