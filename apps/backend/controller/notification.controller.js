@@ -59,7 +59,7 @@ export const getUserOrGarageNotification = catchAsync(async (req, res, next) => 
     });
 
     if(result.length <= 0) {
-        return res.status(400).json(dataResponse([], 200, 'Get list notifications successful!', null, null, limitNum, 0))
+        return res.status(200).json(dataResponse([], 200, 'Get list notifications successful!', null, null, limitNum, 0))
       }
 
     let {cursorRes, nextCursorResp, respGarage} = getGaragePagination(result, limitNum);
