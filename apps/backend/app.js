@@ -40,6 +40,7 @@ app.use(
       "https://localhost:5173",
       "https://scaling-space-couscous-r4g5g7565wf5675-5173.app.github.dev",
       "https://cautious-waddle-gj6gx45r49fvrrj-5173.app.github.dev/",
+      "https://cautious-waddle-gj6gx45r49fvrrj-5173.app.github.dev",
     ],
     optionsSuccessStatus: 200,
   })
