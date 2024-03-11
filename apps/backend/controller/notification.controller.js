@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { getFirestore } from 'firebase-admin/firestore';
 import Notification from '../models/notification.model.js';
 import { DEFAULT_NUMBER_NOTI_SHOW } from '../enum/notification.enum.js';
-import { getGaragePagination, getNotiPagination } from '../helper/garage.helper.js';
+import { getGaragePagination } from '../helper/garage.helper.js';
 import dataResponse from '../utils/dataResponse.js';
 import catchAsync from '../utils/catchAsync.js';
 
