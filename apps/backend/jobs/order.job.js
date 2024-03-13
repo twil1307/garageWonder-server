@@ -29,7 +29,7 @@ orderQueue.process(async (payload, done) => {
       const orderDate = getBeginningOfTheDay(requestOrders[i].orderTime);
       const newOrder = new Order(requestOrders[i]);
       console.log(orderDate);
-      console.log(get3AmAfterBookingDayFromTodayPro(orderDate));
+      console.log(get3AmAfterBookingDayFromToday(requestOrders[i].orderTime));
 
       const redisKey = `${newOrder.garageId}-${orderDate}`;
 
@@ -41,7 +41,7 @@ orderQueue.process(async (payload, done) => {
           redisKey,
           JSON.stringify(cacheOrderData),
           "EX",
-          get3AmAfterBookingDayFromTodayPro(orderDate)
+          get3AmAfterBookingDayFromToday(requestOrders[i].orderTime)
         );
         // set event for cron job - to persist data from redis to server
         // orderPersistQueue.add({
@@ -135,24 +135,5 @@ orderQueue.on("failed", async (job, result) => {
   // }
   return;
 });
-
-const get3AmAfterBookingDayFromTodayPro = (dateTime) => {
-  try {
-      const now = new Date();
-      const tomorrow = new Date(Number.parseInt(dateTime));
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      tomorrow.setHours(3, 0, 0, 0);
-
-      const delayInMils = (tomorrow.getTime() - now.getTime())/1000;
-
-      // const delaySec = delayInMils / 1000;
-
-      return Math.floor(delayInMils);
-      // return 10000;
-  } catch (error) {
-      console.log("error at get3AmAfterBookingDayFromToday")
-  }
-  
-}
 
 export default orderQueue;

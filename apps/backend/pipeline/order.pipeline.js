@@ -22,6 +22,77 @@ export const getOrderInDatePipeline = (orderDate) => {
   ];
 };
 
+export const getGarageOrderPipeline = (
+  garageId,
+  start,
+  end,
+  limit,
+  cursor,
+  sort
+) => {
+  return [
+    {
+      $match: {
+        garageId: mongoose.Types.ObjectId(garageId),
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "userId",
+      },
+    },
+    {
+      $lookup: {
+        from: "services",
+        localField: "serviceIds",
+        foreignField: "_id",
+        as: "services",
+      },
+    },
+    {
+      $unwind: "$userId",
+    },
+    ...(start && end
+      ? [
+          {
+            $match: {
+              $and: [
+                {
+                  orderTime: { $gte: 1714521600000 },
+                },
+                {
+                  orderTime: { $lte: 1717027200000 },
+                },
+              ],
+            },
+          },
+        ]
+      : []),
+    {
+      $sort: {
+        orderTime: -1,
+      },
+    },
+    ...(cursor
+      ? [
+          {
+            $match: {
+              _id: {
+                $gte: mongoose.Types.ObjectId(cursor),
+              },
+            },
+          },
+        ]
+      : []),
+    {
+      $limit: limit + 1,
+    },
+  ];
+};
+
 export const getMaxSlotByDate = (garageId, orderDate) => {
   return [
     {

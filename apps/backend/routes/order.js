@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { createNewOrder, getAllGarages } from '../controller/order.controller.js';
+import { createNewOrder, getGarageOrders } from '../controller/order.controller.js';
 var router = Router();
 
-router.get('/:garageId', getAllGarages);
+router.get('/:garageId', getGarageOrders);
 
 router.post('/', createNewOrder);
 
