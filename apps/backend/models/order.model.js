@@ -53,10 +53,6 @@ const orderSchema = new Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Evaluations",
   },
-  carId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Cars",
-  },
   car: {
     type: {
       brandId: {
@@ -114,17 +110,19 @@ const orderSchema = new Schema({
   },
   createdAt: {
     type: Number,
+    default: new Date().getTime(),
   },
   updatedAt: {
     type: Number,
+    default: new Date().getTime(),
   },
 });
 
-orderSchema.pre("save", function (next) {
-  this.createdAt = new Date().getTime();
-  this.updatedAt = new Date().getTime();
-  next();
-});
+// orderSchema.pre("save", function (next) {
+//   this.createdAt = new Date().getTime();
+//   this.updatedAt = new Date().getTime();
+//   next();
+// });
 
 orderSchema.pre("updateOne", function (next) {
   this.updatedAt = new Date().getTime();

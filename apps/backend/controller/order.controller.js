@@ -1,17 +1,17 @@
 import orderQueue from "../jobs/order.job.js";
-import Order from "../models/order.model.js";
-import Car from "../models/car.model.js";
-import Garage from "../models/garage.model.js";
-import { getMaxSlotByDate, getOrderInDatePipeline } from "../pipeline/order.pipeline.js";
 import catchAsync from "../utils/catchAsync.js"
 import dataResponse from "../utils/dataResponse.js";
-import { get3AmAfterBookingDayFromToday, get3AmNextDayInMls, getBeginningOfTheDay, hourToSecond } from "../utils/dateTimeParse.js";
-import { redisClient } from "../config/redis.js";
-import orderPersistQueue from "../jobs/orderPersist.job.js";
+import { get3AmAfterBookingDayFromToday, getBeginningOfTheDay } from "../utils/dateTimeParse.js";
 
 export const createNewOrder = catchAsync(async (req, res, next) => {
+
+    console.log("Order placed");
+
+    console.log(req.body[0].orderTime);
+    console.log(getBeginningOfTheDay(req.body[0].orderTime));
+    console.log(get3AmAfterBookingDayFromToday(req.body[0].orderTime))
     
-    orderQueue.add({
+    await orderQueue.add({
         orderData: req.body
     }, {
         attempts: 5

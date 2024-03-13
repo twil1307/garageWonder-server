@@ -45,14 +45,20 @@ export const get3AmNextDayInMlsWithDate = (dateTime) => {
 }
 
 export const get3AmAfterBookingDayFromToday = (dateTime) => {
-    const now = new Date();
-    const orderDate = new Date(dateTime);
-    const tomorrow = new Date(orderDate);
-    tomorrow.setDate(now.getDate() + 1);
-    tomorrow.setHours(3, 0, 0, 0);
+    try {
+        const now = new Date();
+        const tomorrow = new Date(Number.parseInt(dateTime));
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(3, 0, 0, 0);
 
-    const delayInMils = tomorrow.getTime() - now.getTime();
+        const delayInMils = (tomorrow.getTime() - now.getTime())/1000;
 
-    return delayInMils;
-    // return 10000;
+        // const delaySec = delayInMils / 1000;
+
+        return Math.floor(delayInMils);
+        // return 10000;
+    } catch (error) {
+        console.log("error at get3AmAfterBookingDayFromToday")
+    }
+    
 }
