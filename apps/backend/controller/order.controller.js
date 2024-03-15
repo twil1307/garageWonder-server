@@ -1,8 +1,9 @@
 import { ITEMS_PER_CURSOR } from "../enum/garage.enum.js";
 import { getGaragePagination } from "../helper/garage.helper.js";
 import orderQueue from "../jobs/order.job.js";
+import Evaluation from "../models/evaluation.model.js";
 import Order from "../models/order.model.js";
-import { getGarageOrderPipeline } from "../pipeline/order.pipeline.js";
+import { getDetailOrderPipeline, getGarageOrderPipeline } from "../pipeline/order.pipeline.js";
 import catchAsync from "../utils/catchAsync.js";
 import dataResponse from "../utils/dataResponse.js";
 import {
@@ -40,6 +41,8 @@ export const getGarageOrders = catchAsync(async (req, res, next) => {
   console.log(cursor);
 
   const limitNum = Number.parseInt(limit) || ITEMS_PER_CURSOR;
+
+  console.log(JSON.stringify(getGarageOrderPipeline(garageId, startTime, endTime, limitNum, cursor, sort)));
 
   const garageOrders = await Order.aggregate(
     getGarageOrderPipeline(garageId, startTime, endTime, limitNum, cursor, sort)
@@ -79,4 +82,20 @@ export const getGarageOrders = catchAsync(async (req, res, next) => {
         respGarage.length || 0
       )
     );
+});
+
+export const getOrderDetail = catchAsync(async (req, res, next) => {
+  const { orderId } = req.params;
+  
+  const orderDetail = await Order.aggregate(getDetailOrderPipeline(orderId));
+
+  return res.status(200).json(dataResponse(orderDetail, 200, "Get order detail successfully"));
+});
+
+export const addOrderEvaluation = catchAsync(async (req, res, next) => {
+  console.log(req.body.estimationDuration);
+  const orderEvaluation = new Evaluation(req.body);
+  console.log(orderEvaluation);
+
+  return res.status(200).json(dataResponse(orderEvaluation));
 });

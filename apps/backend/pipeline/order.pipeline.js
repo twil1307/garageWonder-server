@@ -22,6 +22,43 @@ export const getOrderInDatePipeline = (orderDate) => {
   ];
 };
 
+export const getDetailOrderPipeline = (orderId) => {
+  return [
+    {
+      $match: {
+        _id: mongoose.Types.ObjectId(orderId)
+      }
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "user"
+      }
+    },
+    {
+      $unwind: "$user"
+    },
+    {
+      $lookup: {
+        from: "services",
+        localField: "serviceIds",
+        foreignField: "_id",
+        as: "services"
+      }
+    },
+    {
+      $project: {
+        "user.role": 0,
+        "user.favoriteGarage": 0,
+        "userId": 0,
+        "serviceIds": 0
+      }
+    }
+  ]
+}
+
 export const getGarageOrderPipeline = (
   garageId,
   start,
@@ -55,16 +92,27 @@ export const getGarageOrderPipeline = (
     {
       $unwind: "$userId",
     },
+    {
+      $lookup: {
+        from: "brands",
+        localField: "car.brandId",
+        foreignField: "_id",
+        as: "car.brand"
+      }
+    },
+    {
+      $unwind: "$car.brand"
+    },
     ...(start && end
       ? [
           {
             $match: {
               $and: [
                 {
-                  orderTime: { $gte: 1714521600000 },
+                  orderTime: { $gte: start },
                 },
                 {
-                  orderTime: { $lte: 1717027200000 },
+                  orderTime: { $lte: end },
                 },
               ],
             },
@@ -90,6 +138,11 @@ export const getGarageOrderPipeline = (
     {
       $limit: limit + 1,
     },
+    {
+      $project: {
+        "car.brandId": 0
+      }
+    }
   ];
 };
 
