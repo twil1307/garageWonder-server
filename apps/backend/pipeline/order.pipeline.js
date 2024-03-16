@@ -199,6 +199,48 @@ export const getMaxSlotByDate = (garageId, orderDate) => {
   ];
 };
 
+export const getGarageDateSlotByMonth = (garageId, start, end) => {
+  return [
+    {
+      $match: {
+        _id: mongoose.Types.ObjectId(garageId),
+      },
+    },
+    {
+      $project: {
+        dateSlot: 1,
+        defaultSlot: 1,
+      },
+    },
+    {
+      $unwind: "$dateSlot",
+    },
+    {
+      $project: {
+        defaultSlot: 1,
+        date: "$dateSlot.date",
+        maximumSlot: "$dateSlot.slot",
+      },
+    },
+    {
+      $match: {
+        $and: [
+          {
+            date: {
+              $gte: start, //start date
+            },
+          },
+          {
+            date: {
+              $lte: end, //end date
+            },
+          },
+        ],
+      },
+    },
+  ]
+};
+
 export const getOrderByMonth = (garageId, start, end) => {
   return [
     {
@@ -276,7 +318,7 @@ export const getOrderByMonth = (garageId, start, end) => {
     },
     {
       $addFields: {
-        beginningOfDayNumber: {
+        beginningOfTheDay: {
           $subtract: [
             {
               $subtract: [
@@ -299,6 +341,11 @@ export const getOrderByMonth = (garageId, start, end) => {
         beginningOfTheDay: 1,
         orderTime: 1,
         estimateHandOffTime: 1,
+      }
+    },
+    {
+      $sort: {
+        orderTime: 1
       }
     }
   ];
