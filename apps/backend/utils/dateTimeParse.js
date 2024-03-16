@@ -70,3 +70,7 @@ export const get3AmAfterBookingDayFromToday = (dateTime) => {
     }
     
 }
+
+export const convertDayNumberToMillisecond = (hour) => {
+    return hour * 24 * 60 * 60 * 1000;
+}

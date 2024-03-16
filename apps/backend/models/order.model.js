@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { COMPLETE, EVALUATE, FIXING, PREPARE } from "../enum/booking.enum.js";
+import { convertDayNumberToMillisecond } from "../utils/dateTimeParse.js";
 const Schema = mongoose.Schema;
 // export const enum ProcessStatus {
 //     Evaluate = 0,
@@ -83,6 +84,9 @@ const orderSchema = new Schema({
   pickUpTime: {
     type: Number,
   },
+  estimateHandOffTime: {
+    type: Number
+  },
   totalPrice: {
     type: Number,
     default: 0,
@@ -118,11 +122,10 @@ const orderSchema = new Schema({
   },
 });
 
-// orderSchema.pre("save", function (next) {
-//   this.createdAt = new Date().getTime();
-//   this.updatedAt = new Date().getTime();
-//   next();
-// });
+orderSchema.pre("save", function (next) {
+  this.estimateHandOffTime = this.orderTime + convertDayNumberToMillisecond(2);
+  next();
+});
 
 orderSchema.pre("updateOne", function (next) {
   this.updatedAt = new Date().getTime();

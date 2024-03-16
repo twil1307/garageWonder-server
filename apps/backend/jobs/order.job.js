@@ -3,6 +3,7 @@ import { redisClient, redisOptions } from "../config/redis.js";
 import dotenv from "dotenv";
 import Order from "../models/order.model.js";
 import {
+  convertDayNumberToMillisecond,
   get3AmAfterBookingDayFromToday,
   getBeginningOfTheDay,
   hourToSecond,
@@ -28,8 +29,9 @@ orderQueue.process(async (payload, done) => {
     for (var i = 0; i < requestOrders.length; i++) {
       const orderDate = getBeginningOfTheDay(requestOrders[i].orderTime);
       const newOrder = new Order(requestOrders[i]);
-      console.log(orderDate);
-      console.log(get3AmAfterBookingDayFromToday(requestOrders[i].orderTime));
+      newOrder.estimateHandOffTime = requestOrders[i].orderTime + convertDayNumberToMillisecond(2);
+      // console.log(orderDate);
+      // console.log(get3AmAfterBookingDayFromToday(requestOrders[i].orderTime));
 
       const redisKey = `${newOrder.garageId}-${orderDate}`;
 
@@ -74,8 +76,6 @@ orderQueue.process(async (payload, done) => {
       }
 
       const remainingCacheTime = await redisClient.ttl(redisKey);
-      console.log("================");
-      console.log(remainingCacheTime);
       parsedCachedOrder.push(newOrder);
       completedOrder.push(newOrder);
       await redisClient.set(

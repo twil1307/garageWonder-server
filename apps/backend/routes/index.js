@@ -6,6 +6,7 @@ import brandRouter from './brand.js';
 import paymentRouter from './payment.js';
 import orderRouter from './order.js';
 import notificationRouter from './notification.js';
+import garageManagementRouter from './garageManagement.js';
 var router = Router();
 
 router.use('/users', usersRouter);
@@ -15,5 +16,6 @@ router.use('/brands', brandRouter);
 router.use('/payment', paymentRouter);
 router.use('/order', orderRouter);
 router.use('/notification', notificationRouter);
+router.use('/garageManagement', garageManagementRouter);
 
 export default router;

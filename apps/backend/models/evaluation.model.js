@@ -33,6 +33,10 @@ const evaluationSchema = new Schema({
   estimationDuration: {
     type: [Number]
   },
+  createdBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+  },
   createdAt: {
     type: Number,
     default: new Date().getTime()

@@ -198,3 +198,108 @@ export const getMaxSlotByDate = (garageId, orderDate) => {
     },
   ];
 };
+
+export const getOrderByMonth = (garageId, start, end) => {
+  return [
+    {
+      $match: {
+        garageId: mongoose.Types.ObjectId(garageId)
+      },
+    },
+    {
+      $match: {
+        $and: [
+          {
+            $or: [
+              {
+                $and: [
+                  {
+                    orderTime: {
+                      $lte: start,
+                    },
+                  },
+                  {
+                    estimateHandOffTime: {
+                      $gte: end,
+                    },
+                  },
+                ],
+              },
+              {
+                $and: [
+                  {
+                    orderTime: {
+                      $lte: start,
+                    },
+                  },
+                  {
+                    estimateHandOffTime: {
+                      $lt: end,
+                      $gt: start,
+                    },
+                  },
+                ],
+              },
+              {
+                $and: [
+                  {
+                    orderTime: {
+                      $lt: end,
+                      $gt: start,
+                    },
+                  },
+                  {
+                    estimateHandOffTime: {
+                      $gte: end,
+                    },
+                  },
+                ],
+              },
+              {
+                $and: [
+                  {
+                    orderTime: {
+                      $gt: start,
+                    },
+                  },
+                  {
+                    estimateHandOffTime: {
+                      $lt: end,
+                    },
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      $addFields: {
+        beginningOfDayNumber: {
+          $subtract: [
+            {
+              $subtract: [
+                "$orderTime",
+                {
+                  $mod: [
+                    "$orderTime",
+                    24 * 60 * 60 * 1000,
+                  ],
+                },
+              ],
+            },
+            7 * 60 * 60 * 1000, // Adjusting for GMT+7 timezone offset
+          ],
+        },
+      },
+    },
+    {
+      $project: {
+        beginningOfTheDay: 1,
+        orderTime: 1,
+        estimateHandOffTime: 1,
+      }
+    }
+  ];
+}
