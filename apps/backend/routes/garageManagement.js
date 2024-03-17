@@ -1,13 +1,28 @@
-import { Router } from 'express';
-import { getGarageOrders, getOrderDetail, addOrderEvaluation, getScheduleOrderByMonth } from '../controller/garageManagement.controller.js';
+import { Router } from "express";
+import {
+  getGarageOrders,
+  getOrderDetail,
+  addOrderEvaluation,
+  getScheduleOrderByMonth,
+  uploadEvaluationImage,
+} from "../controller/garageManagement.controller.js";
+import { memoryStorage } from "../helper/uploadImg.js";
 var router = Router();
 
-router.get('/garage/:garageId', getGarageOrders);
+router.get("/garage/:garageId", getGarageOrders);
 
-router.get('/order/:orderId', getOrderDetail);
+router.get("/order/:orderId", getOrderDetail);
 
-router.get('/schedule/:garageId', getScheduleOrderByMonth);
+router.get("/schedule/:garageId", getScheduleOrderByMonth);
 
-router.post('/evaluation', addOrderEvaluation);
+router.post("/evaluation", addOrderEvaluation);
+
+router.post(
+  "/evaluation/image",
+  memoryStorage.fields([
+    { name: "evaluationImage", maxCount: 10 },
+  ]),
+  uploadEvaluationImage
+);
 
 export default router;

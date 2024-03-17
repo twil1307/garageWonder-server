@@ -1,6 +1,9 @@
 import { ITEMS_PER_CURSOR } from "../enum/garage.enum.js";
 import { getGaragePagination } from "../helper/garage.helper.js";
-import { estimateHandOffTime, getScheduleSlotByMonth } from "../helper/order.helper.js";
+import {
+  estimateHandOffTime,
+  getScheduleSlotByMonth,
+} from "../helper/order.helper.js";
 import Evaluation from "../models/evaluation.model.js";
 import Order from "../models/order.model.js";
 import Garage from "../models/garage.model.js";
@@ -117,19 +120,34 @@ export const getScheduleOrderByMonth = catchAsync(async (req, res, next) => {
 
   // console.log(garageId);
 
-  const monthSlot = getGarageDateSlotByMonth(garageId, Number.parseInt(startTime), Number.parseInt(endTime));
+  const monthSlot = getGarageDateSlotByMonth(
+    garageId,
+    Number.parseInt(startTime),
+    Number.parseInt(endTime)
+  );
 
-  const schedulePipeline = getOrderByMonth(garageId, Number.parseInt(startTime), Number.parseInt(endTime));
+  const schedulePipeline = getOrderByMonth(
+    garageId,
+    Number.parseInt(startTime),
+    Number.parseInt(endTime)
+  );
 
   console.log(JSON.stringify(schedulePipeline));
 
   const listOrder = await Order.aggregate(schedulePipeline);
   const listMonthSlots = await Garage.aggregate(monthSlot);
 
-  const result = getScheduleSlotByMonth(Number.parseInt(startTime), listOrder, listMonthSlots);
+  const result = getScheduleSlotByMonth(
+    Number.parseInt(startTime),
+    listOrder,
+    listMonthSlots
+  );
 
-  console.log(listOrder);
-  console.log(listMonthSlots);
+  return res
+    .status(200)
+    .json(dataResponse(result, 200, "Get list order successfully!"));
+});
 
-  return res.status(200).json(dataResponse(result, 200, "Get list order successfully!"));
+export const uploadEvaluationImage = catchAsync(async (req, res, next) => {
+  const { orderId } = req.body;
 });

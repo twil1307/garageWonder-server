@@ -55,7 +55,27 @@ export const getDetailOrderPipeline = (orderId) => {
         "userId": 0,
         "serviceIds": 0
       }
-    }
+    },
+    {
+      $lookup: {
+        from: "brands",
+        localField: "car.brandId",
+        foreignField: "_id",
+        as: "car.brand",
+      },
+    },
+    {
+      $unwind: "$car.brand",
+    },
+    {
+      $project: {
+        "user.role": 0,
+        "user.favoriteGarage": 0,
+        userId: 0,
+        serviceIds: 0,
+        "car.brandId": 0,
+      },
+    },
   ]
 }
 
