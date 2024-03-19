@@ -157,8 +157,13 @@ export const getScheduleOrderByMonth = catchAsync(async (req, res, next) => {
 export const uploadEvaluationImage = catchAsync(async (req, res, next) => {
   const { orderId } = req.body;
 
-  if(!req.files["evaluationImage"] || req.files["evaluationImage"].length === 0) {
-    return res.status(200).json(dataResponse(null, 400, "Background image required"));
+  if (
+    !req.files["evaluationImage"] ||
+    req.files["evaluationImage"].length === 0
+  ) {
+    return res
+      .status(200)
+      .json(dataResponse(null, 400, "Background image required"));
   }
 
   const publicPath = getWorkerPath("uploadEvaluationImageWorker.js");
@@ -195,16 +200,18 @@ export const uploadEvaluationImage = catchAsync(async (req, res, next) => {
       EVALUATION_UPLOAD
     );
 
-    const savedGarage = await Evaluation.findOne({orderId: mongoose.Types.ObjectId(data.orderId)});
+    const savedGarage = await Evaluation.findOne({
+      orderId: mongoose.Types.ObjectId(data.orderId),
+    });
 
-    if(savedGarage) {
+    if (savedGarage) {
       const query = {
         orderId: mongoose.Types.ObjectId(data.orderId),
       };
 
       const orderUpdateQuery = {
         _id: mongoose.Types.ObjectId(data.orderId),
-      }
+      };
 
       const update = {
         $set: {
@@ -217,7 +224,7 @@ export const uploadEvaluationImage = catchAsync(async (req, res, next) => {
         $set: {
           status: 1,
         },
-      }
+      };
 
       await Evaluation.findOneAndUpdate(query, update);
       await Order.findByIdAndUpdate(orderUpdateQuery, orderStatusUpdateQuery);
@@ -232,10 +239,38 @@ export const uploadEvaluationImage = catchAsync(async (req, res, next) => {
     }
 
     console.log("Image upload for evaluation done!");
-    
   });
 
-  return res.status(200).json(dataResponse(null, 200, "Upload image successfully!"))
+  return res
+    .status(200)
+    .json(dataResponse(null, 200, "Upload image successfully!"));
+});
+
+export const getUserGarage = catchAsync(async (req, res, next) => {
+  const { userId } = req.params;
+
+  const garage = await Garage.aggregate([
+    {
+      $match: {
+        userId: mongoose.Types.ObjectId(userId),
+      },
+    },
+    {
+      $limit: 1
+    },
+    {
+      $project: {
+        _id: 1,
+        name: 1,
+        createdAt: 1,
+        updatedAt: 1
+      }
+    }
+  ]);
+
+  return res
+    .status(200)
+    .json(dataResponse(garage[0], 200, "Get garage successfully!"));
 });
 
 export const moveToStep = catchAsync(async (req, res, next) => {

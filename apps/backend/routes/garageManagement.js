@@ -5,6 +5,7 @@ import {
   addOrderEvaluation,
   getScheduleOrderByMonth,
   uploadEvaluationImage,
+  getUserGarage,
 } from "../controller/garageManagement.controller.js";
 import { memoryStorage } from "../helper/uploadImg.js";
 var router = Router();
@@ -12,6 +13,8 @@ var router = Router();
 router.get("/garage/:garageId", getGarageOrders);
 
 router.get("/order/:orderId", getOrderDetail);
+
+router.get("/owner/:userId", getUserGarage);
 
 router.get("/schedule/:garageId", getScheduleOrderByMonth);
 
