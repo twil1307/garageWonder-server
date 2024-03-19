@@ -268,6 +268,12 @@ export const getUserGarage = catchAsync(async (req, res, next) => {
     }
   ]);
 
+  if (!garage[0]) {
+    return res
+      .status(400)
+      .json(dataResponse(null, 400, "Can't not find garage ID from this user ID!"));
+  }
+
   return res
     .status(200)
     .json(dataResponse(garage[0], 200, "Get garage successfully!"));
