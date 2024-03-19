@@ -13,7 +13,7 @@ export const saveMultipleGarageServices = async (listServices, garageId, session
         const { _id, ...restOfService } = service;
         const createdAt = new Date().getTime();
         const updatedAt = new Date().getTime();
-        const brandIdsParse = service.brandIds.map(brand => mongoose.Types.ObjectId(brand));
+        const brandIdsParse = Array.isArray(service.brandIds) ? service.brandIds.map(brand => mongoose.Types.ObjectId(brand)) : service.brandIds;
         return {_id: mongoId, garageId, createdAt, updatedAt, brandIds: brandIdsParse, ...restOfService}
     })
 

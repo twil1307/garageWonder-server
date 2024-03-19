@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { BOOKING_ESTIMATE_TYPE } from "../enum/booking.enum.js";
+import { HAVE_NO_IMAGE, IMAGE_IS_UPLOADING, IMAGE_UPLOADED, IMAGE_UPLOADED_FAIL } from "../enum/image.enum.js";
 const Schema = mongoose.Schema;
 
 // export type Evaluation = Model & {
@@ -9,17 +10,28 @@ const Schema = mongoose.Schema;
 
 const evaluationSchema = new Schema({
   orderId: {
-    type: mongoose.Schema.Types.ObjectId
+    type: mongoose.Schema.Types.ObjectId,
   },
   description: {
-    type: String
+    type: String,
   },
   evaluationImgs: {
-    type: [String]
+    type: [mongoose.Schema.Types.ObjectId],
+    default: [],
+  },
+  imageUploadingStatus: {
+    type: Number,
+    default: 0,
+    enum: [
+      HAVE_NO_IMAGE,
+      IMAGE_IS_UPLOADING,
+      IMAGE_UPLOADED,
+      IMAGE_UPLOADED_FAIL,
+    ],
   },
   extraFee: {
     type: Number,
-    default: 0
+    default: 0,
   },
   estimationType: {
     type: Number,
@@ -27,11 +39,11 @@ const evaluationSchema = new Schema({
       BOOKING_ESTIMATE_TYPE.SAME_DAY,
       BOOKING_ESTIMATE_TYPE.EXACT_DAY,
       BOOKING_ESTIMATE_TYPE.COMPLETE_IN_RANGE,
-      BOOKING_ESTIMATE_TYPE.CANT_ESTIMATE
+      BOOKING_ESTIMATE_TYPE.CANT_ESTIMATE,
     ],
   },
   estimationDuration: {
-    type: [Number]
+    type: [Number],
   },
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
@@ -39,11 +51,11 @@ const evaluationSchema = new Schema({
   },
   createdAt: {
     type: Number,
-    default: new Date().getTime()
+    default: new Date().getTime(),
   },
   updatedAt: {
     type: Number,
-    default: new Date().getTime()
+    default: new Date().getTime(),
   },
 });
 
@@ -58,7 +70,6 @@ evaluationSchema.pre("updateOne", function (next) {
 
   next();
 });
-
 
 const Evaluation = mongoose.model("Evaluations", evaluationSchema);
 

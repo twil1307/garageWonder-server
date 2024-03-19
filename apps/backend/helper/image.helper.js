@@ -1,7 +1,7 @@
 import { Types } from "mongoose";
 import Image from "../models/image.model.js"
-import { HOME_IMAGE_SIZE, TOTAL_IMAGE_SIZE } from "../enum/garage.enum.js";
-import { ALLOW_IMAGE_FORMAT } from "../enum/image.enum.js";
+import { EVALUATION_IMAGE_SIZE, HOME_IMAGE_SIZE, TOTAL_IMAGE_SIZE } from "../enum/garage.enum.js";
+import { ALLOW_IMAGE_FORMAT, EVALUATION_UPLOAD, GARAGE_UPLOAD } from "../enum/image.enum.js";
 import path from 'path';
 import fs from 'fs';
 import sharp from 'sharp'
@@ -14,7 +14,7 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export const getMultipleImageMongooseInst = async (imagesPath, session, garageId, isUploadLocal = false) => {
+export const getMultipleImageMongooseInst = async (imagesPath, session, garageId = null, uploadField = "garage") => {
   console.log(imagesPath);
   const imagesId = [];
   const imagesUrls = [];
@@ -22,7 +22,12 @@ export const getMultipleImageMongooseInst = async (imagesPath, session, garageId
       const mongoId = new Types.ObjectId();
       imagesId.push(mongoId);
       imagesUrls.push(image);
-      return {_id: mongoId.toString(), path: image, garageId: garageId}
+
+      if(uploadField === GARAGE_UPLOAD) {
+        return {_id: mongoId.toString(), path: image, garageId: garageId}
+      } else {
+        return {_id: mongoId.toString(), path: image}
+      }
   });
 
   console.log(imagesInst);
@@ -77,19 +82,23 @@ export const convertSingleImageToMultipleSizes = (imagesPath) => {
   return imagesInst;
 }
 
-export const saveMultipleImageWithSizeMongoose = async (imagesPath, session, garageId, isUploadLocal = false) => {
+export const saveMultipleImageWithSizeMongoose = async (imagesPath, session, garageId, isUploadLocal = false, uploadField = GARAGE_UPLOAD) => {
   try {
     console.log(imagesPath);
     const imagesId = [];
     const imagesInst = [];
     
     imagesPath.forEach((image) => {
-      TOTAL_IMAGE_SIZE.forEach((size) => {
+      (uploadField !== GARAGE_UPLOAD ? EVALUATION_IMAGE_SIZE : TOTAL_IMAGE_SIZE).forEach((size) => {
         const mongoId = new Types.ObjectId();
         imagesId.push(mongoId);
         const pathImage = !isUploadLocal ? convertUrlPathWithSize(image, size.width, size.height) : image;
 
-        imagesInst.push({_id: mongoId, url: pathImage, garageId: mongoose.Types.ObjectId(garageId), width: size.width, height: size.height})
+        if(uploadField === GARAGE_UPLOAD) {
+          imagesInst.push({_id: mongoId, url: pathImage, garageId: mongoose.Types.ObjectId(garageId), width: size.width, height: size.height})
+        } else {
+          imagesInst.push({_id: mongoId, url: pathImage, width: size.width, height: size.height})
+        }
       })
     })
 
@@ -110,6 +119,8 @@ export const saveMultipleImageWithSizeMongoose = async (imagesPath, session, gar
       }
     }));
 
+    console.log(bulkOps);
+
     const collection = dbNative.collection('images');
 
     await collection.bulkWrite(bulkOps);
@@ -120,6 +131,7 @@ export const saveMultipleImageWithSizeMongoose = async (imagesPath, session, gar
 
     return imagesId;
   } catch (error) {
+    console.log(error);
     throw new Error(error);
   }
 }

@@ -13,10 +13,6 @@ const writeFileCloud = async () => {
         
         const { backgroundDataURI, garageDataURIs, ipAddress } = workerData;
 
-        if(backgroundDataURI && garageDataURIs && ipAddress) {
-            console.log("All parameter matched");
-        }
-
         const cachedCreatingGarage = await redisClient.get(ipAddress);
         console.log('Ready to upload image to cloudinary for ip: ' + ipAddress);
 
@@ -39,21 +35,6 @@ const writeFileCloud = async () => {
 
         const garageObj = JSON.parse(cachedCreatingGarage);
         console.log(garageObj);
-
-        // if(garageObj.backgroundImage && garageObj.backgroundImage.includes(process.env.DEV_PUBLIC_URL)) {
-        //     console.log("Is deleting file?")
-        //     deleteFileInfolder(garageObj.backgroundImage)
-        // }
-
-        // if(garageObj.images && garageObj.images.length > 0) {
-        //     console.log("Is deleting files list?")
-        //     const retrieveImagePath = await getImagesDevPublicUrlIncluded(garageObj._id);
-
-        //     if(retrieveImagePath.length > 0) {
-        //         deleteMultipleFileInFolder(retrieveImagePath);
-        //         await getImagesDevPublicUrlIncludedAndDeleted(garageObj._id);
-        //     }
-        // }
 
         const imgInstSavingMongoose = await handleGetImageToSave(extractUrlCloudinary(garagesResult), garageObj._id);
         garageObj.images = imgInstSavingMongoose.imagesId;

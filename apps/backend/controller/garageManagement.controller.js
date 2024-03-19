@@ -15,6 +15,12 @@ import {
 } from "../pipeline/order.pipeline.js";
 import catchAsync from "../utils/catchAsync.js";
 import dataResponse from "../utils/dataResponse.js";
+import { Worker } from "worker_threads";
+import { getWorkerPath } from "../utils/filePath.js";
+import { EVALUATION_UPLOAD, IMAGE_UPLOADED } from "../enum/image.enum.js";
+import mongoose from "mongoose";
+import { redisClient } from "../config/redis.js";
+import { saveMultipleImageWithSizeMongoose } from "../helper/image.helper.js";
 
 export const getGarageOrders = catchAsync(async (req, res, next) => {
   const { garageId } = req.params;
@@ -150,4 +156,90 @@ export const getScheduleOrderByMonth = catchAsync(async (req, res, next) => {
 
 export const uploadEvaluationImage = catchAsync(async (req, res, next) => {
   const { orderId } = req.body;
+
+  if(!req.files["evaluationImage"] || req.files["evaluationImage"].length === 0) {
+    return res.status(200).json(dataResponse(null, 400, "Background image required"));
+  }
+
+  const publicPath = getWorkerPath("uploadEvaluationImageWorker.js");
+
+  const evaluationURIs = [];
+  const evaluationImageBuffer = [];
+  // Process multiple garage images
+  req.files["evaluationImage"].map(async (file) => {
+    const garageB64 = Buffer.from(file.buffer).toString("base64");
+    const garageDataURI = "data:" + file.mimetype + ";base64," + garageB64;
+
+    evaluationImageBuffer.push(garageB64);
+    evaluationURIs.push(garageDataURI);
+  });
+
+  const localUploadWorker = new Worker(publicPath, {
+    workerData: {
+      evaluationImageBuffer: evaluationImageBuffer,
+      evaluationURIs: evaluationURIs,
+      orderId: orderId,
+      retry: 7,
+    },
+  });
+
+  localUploadWorker.on("message", async (data) => {
+    console.log(data);
+    console.log("upload cloud done");
+
+    const imagesId = await saveMultipleImageWithSizeMongoose(
+      data.imagesUrls,
+      undefined,
+      data.orderId,
+      false,
+      EVALUATION_UPLOAD
+    );
+
+    const savedGarage = await Evaluation.findOne({orderId: mongoose.Types.ObjectId(data.orderId)});
+
+    if(savedGarage) {
+      const query = {
+        orderId: mongoose.Types.ObjectId(data.orderId),
+      };
+
+      const orderUpdateQuery = {
+        _id: mongoose.Types.ObjectId(data.orderId),
+      }
+
+      const update = {
+        $set: {
+          evaluationImgs: imagesId,
+          imageUploadingStatus: IMAGE_UPLOADED,
+        },
+      };
+
+      const orderStatusUpdateQuery = {
+        $set: {
+          status: 1,
+        },
+      }
+
+      await Evaluation.findOneAndUpdate(query, update);
+      await Order.findByIdAndUpdate(orderUpdateQuery, orderStatusUpdateQuery);
+    } else {
+      // set cron job for later update
+      await redisClient.set(
+        data.orderId,
+        JSON.stringify(data.imagesUrls),
+        "EX",
+        3600
+      );
+    }
+
+    console.log("Image upload for evaluation done!");
+    
+  });
+
+  return res.status(200).json(dataResponse(null, 200, "Upload image successfully!"))
+});
+
+export const moveToStep = catchAsync(async (req, res, next) => {
+  const { orderId, step } = req.body;
+
+  // if(step === 1)
 });

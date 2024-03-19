@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { HAVE_NO_IMAGE, IMAGE_IS_UPLOADING, IMAGE_UPLOADED, IMAGE_UPLOADED_FAIL } from "../enum/image.enum.js";
 const Schema = mongoose.Schema;
 
 const garageSchema = new Schema(
@@ -156,6 +157,12 @@ const garageSchema = new Schema(
     imageUploadingStatus: {
       type: Number,
       default: 0,
+      enum: [
+        HAVE_NO_IMAGE,
+        IMAGE_IS_UPLOADING,
+        IMAGE_UPLOADED,
+        IMAGE_UPLOADED_FAIL
+      ],
     },
     createdAt: {
       type: Number,

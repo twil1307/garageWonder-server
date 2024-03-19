@@ -370,3 +370,22 @@ export const getOrderByMonth = (garageId, start, end) => {
     }
   ];
 }
+
+export const getServicesRequireEvaluation = (serviceIds) => {
+  const ids = (serviceIds || []).map(serIds => mongoose.Types.ObjectId(serIds));
+
+  return [
+    {
+      $match: {
+        _id: {
+          $in: ids,
+        },
+      },
+    },
+    {
+      $match: {
+        isProvidedEvaluation: true
+      }
+    }
+  ]
+}
