@@ -13,15 +13,15 @@ export const hasRole = (...role) => {
 
     const token = authorization.replace("Bearer ", "");
 
-    // const userLoginId = await firebaseAdmin.auth().verifyIdToken(token);
+    const userLoginId = await firebaseAdmin.auth().verifyIdToken(token);
 
     // if(!userLoginId) {
     //   return res.status(400).json(dataResponse(null, 400, "You are not authorized!"));
     // }
     
     const currentUser = await User.findOne({
-      // uid: userLoginId.uid
-      uid: "piuZhHzIZMhQoBrrqoygav2GyTx2"
+      uid: userLoginId.uid
+      // uid: "piuZhHzIZMhQoBrrqoygav2GyTx2"
     });
 
     console.log(currentUser);
@@ -39,8 +39,8 @@ export const hasRole = (...role) => {
       return res.status(400).json(dataResponse(null, 400, "You are not authorized!"));
     }
 
-    req.user = currentUser;
-    next();
+    // req.user = currentUser;
+    // next();
   };
 };
 

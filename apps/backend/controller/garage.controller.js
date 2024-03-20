@@ -469,7 +469,8 @@ export const addStaff = catchAsync(async (req, res, next) => {
 
 export const addOrRemoveFavorite = catchAsync(async (req, res, next) => {
   const { garageId } = req.body;
-  const currentUser = await Users.findById(req.user.id);
+  console.log(req.user);
+  const currentUser = req.user;
   console.log("Here");
 
   if (!currentUser.favoriteGarage.includes(garageId)) {
@@ -482,5 +483,12 @@ export const addOrRemoveFavorite = catchAsync(async (req, res, next) => {
     );
   }
 
-  await currentUser.save();
+  const userUpdate = await Users.findByIdAndUpdate(currentUser._id, {
+    $set: {
+      favoriteGarage: currentUser.favoriteGarage
+    },
+  })
+
+  return res.status(200).json(dataResponse(userUpdate, 200, "Add favorite garage successfully!"))
+  // await currentUser.save();
 });
