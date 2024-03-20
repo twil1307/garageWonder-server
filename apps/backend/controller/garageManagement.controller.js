@@ -101,16 +101,16 @@ export const addOrderEvaluation = catchAsync(async (req, res, next) => {
     return res.status(400).json(dataResponse(null, 400, "Order not found!"));
   }
 
-  const estimateTime = estimateHandOffTime(
-    orderEvaluation.estimationType,
-    order.orderTime,
-    orderEvaluation.estimationDuration[1]
-  );
+  // const estimateTime = estimateHandOffTime(
+  //   orderEvaluation.estimationType,
+  //   order.orderTime,
+  //   orderEvaluation.estimationDuration[1]
+  // );
 
   await orderEvaluation.save();
   await Order.findByIdAndUpdate(orderEvaluation.orderId, {
     $set: {
-      estimateHandOffTime: estimateTime,
+      estimateHandOffTime: orderEvaluation.estimationDuration[1],
       evaluationId: orderEvaluation._id,
     },
   });

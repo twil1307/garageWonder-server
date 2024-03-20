@@ -54,9 +54,7 @@ orderQueue.process(async (payload, done) => {
 
         continue;
       }
-      console.log(i);
-
-
+      
       const parsedCachedOrder = JSON.parse(getCachedGarage);
 
       const performanceStart = new Date().getTime();

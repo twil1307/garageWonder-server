@@ -558,3 +558,22 @@ export const getGarageServicePipeline = (garageId) => {
     },
   ];
 };
+
+export const getGaragesOrderModePipeline = (listGarageIds) => {
+  const ids = listGarageIds.map(id => mongoose.Types.ObjectId(id));
+
+  return [
+    {
+      $match: {
+        _id: {
+          $in: ids,
+        },
+      },
+    },
+    {
+      $project: {
+        isAcceptOrderAuto: 1
+      }
+    }
+  ]
+}

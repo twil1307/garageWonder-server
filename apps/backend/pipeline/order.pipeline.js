@@ -371,14 +371,13 @@ export const getOrderByMonth = (garageId, start, end) => {
   ];
 }
 
+// serviceIds: list ObjectId
 export const getServicesRequireEvaluation = (serviceIds) => {
-  const ids = (serviceIds || []).map(serIds => mongoose.Types.ObjectId(serIds));
-
   return [
     {
       $match: {
         _id: {
-          $in: ids,
+          $in: serviceIds,
         },
       },
     },

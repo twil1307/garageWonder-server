@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { NOTI_GARAGE_ORDER, NOTI_ORDER, NOTI_VOUCHER, ORDER_ACCEPTED, ORDER_PENDING, ORDER_REJECTED } from "../enum/notification.enum.js";
+import { NOTI_GARAGE_ORDER, NOTI_ORDER, NOTI_VOUCHER, ORDER_ACCEPTED, ORDER_CANCELED, ORDER_PENDING, ORDER_REJECTED } from "../enum/notification.enum.js";
 const Schema = mongoose.Schema;
 
 export const notificationTypeEnum = [
@@ -11,7 +11,8 @@ export const notificationTypeEnum = [
 export const orderStatus = [
   ORDER_PENDING,
   ORDER_ACCEPTED,
-  ORDER_REJECTED
+  ORDER_REJECTED,
+  ORDER_CANCELED
 ]
 
 const notificationSchema = new Schema({
@@ -34,9 +35,12 @@ const notificationSchema = new Schema({
         type: Number,
         enum: orderStatus
       },
-      message: {
-        type: String,
-        required: false
+      allowAction: {
+        type: Boolean, // true if garage order mode is manual, false if auto
+      },
+      progressStatus: {
+        type: Number,
+        enum: [] // to show 
       }
     }
   },

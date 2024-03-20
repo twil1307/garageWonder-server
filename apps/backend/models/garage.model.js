@@ -164,6 +164,10 @@ const garageSchema = new Schema(
         IMAGE_UPLOADED_FAIL
       ],
     },
+    isAcceptOrderAuto: {
+      type: Boolean,
+      default: true
+    },
     createdAt: {
       type: Number,
     },
