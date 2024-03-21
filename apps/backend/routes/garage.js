@@ -4,9 +4,8 @@ import { formDataRetrieve, garageImageUploader, memoryStorage } from '../helper/
 var router = Router();
 import { retrieveUserDataMiddleware } from '../middleware/userRetrieveDataMiddleware.js';
 import { hasRole } from '../middleware/userAuthMiddleware.js'
-import { USER } from '../enum/role.enum.js';
-import garageManagementRouter from './garageManagement.js';
-import { addOrderEvaluation, getGarageOrders, getOrderDetail, getScheduleOrderByMonth, getUserGarage, uploadEvaluationImage } from '../controller/garageManagement.controller.js';
+import { ADMIN, GARAGE_OWNER, STAFF, USER } from '../enum/role.enum.js';
+import { addGarageStaff, addOrderEvaluation, getGarageOrders, getOrderDetail, getScheduleOrderByMonth, getUserGarage, setDateSlot, uploadEvaluationImage } from '../controller/garageManagement.controller.js';
 
 // ==============================================
 router.get('/additionalService', getAdditionalService);
@@ -27,7 +26,7 @@ router.post('/image',
   memoryStorageUpload
   );
 
-router.put('/favorite', hasRole(USER), addOrRemoveFavorite);
+router.put('/favorite', hasRole(USER, STAFF, GARAGE_OWNER, ADMIN), addOrRemoveFavorite);
 
 router.post('/initGarage', initialSaveGarage);
 
@@ -49,7 +48,11 @@ router.get('/:garageId/management/orders', getGarageOrders);
 
 router.get('/:garageId/management/schedule', getScheduleOrderByMonth);
 
+router.post('/:garageId/management/schedule/date-config', setDateSlot);
+
 router.post("/:garageId/management/evaluation", addOrderEvaluation);
+
+router.post("/:garageId/management/staff", addGarageStaff);
 
 router.post(
   "/:garageId/management/evaluation/image",

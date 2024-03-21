@@ -57,7 +57,7 @@ const userSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'BankingAccount',
     },
-    garagesBelongTo: {
+    relatedTo: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'Garage',
       default: []

@@ -21,6 +21,9 @@ import { EVALUATION_UPLOAD, IMAGE_UPLOADED } from "../enum/image.enum.js";
 import mongoose from "mongoose";
 import { redisClient } from "../config/redis.js";
 import { saveMultipleImageWithSizeMongoose } from "../helper/image.helper.js";
+import Staff from "../models/staff.model.js";
+import Users from "../models/user.model.js";
+import { logActionForAddStaff } from "../utils/loggerUtil.js";
 
 export const getGarageOrders = catchAsync(async (req, res, next) => {
   const { garageId } = req.params;
@@ -280,8 +283,60 @@ export const getUserGarage = catchAsync(async (req, res, next) => {
     .json(dataResponse(garage[0], 200, "Get garage successfully!"));
 });
 
+export const setDateSlot = catchAsync(async (req, res, next) => {
+  const { garageId } = req.params;
+  const { date, slot, disabled } = req.body;
+
+  const query = {
+    _id: mongoose.Types.ObjectId(garageId)
+  };
+
+  const update = {
+    $set: {
+      dateSlot: {
+        date: date,
+        slot: slot,
+        disabled: !disabled ? false : disabled 
+      }
+    }
+  }
+
+  const options = {
+    upsert: true
+  }
+
+  const garageFind = await Garage.updateOne(query, update, options);
+
+  return res.status(200).json({
+    date, slot, disabled, garageId
+  })
+});
+
 export const moveToStep = catchAsync(async (req, res, next) => {
   const { orderId, step } = req.body;
 
   // if(step === 1)
+});
+
+export const addGarageStaff = catchAsync(async (req, res, next) => {
+  const { garageId } = req.params;
+  const { userId, accessibility } = req.body;
+
+  const newStaff = new Staff({garageId, userId, accessibility});
+
+  await Garage.findByIdAndUpdate({_id: mongoose.Types.ObjectId(garageId)}, {
+    $addToSet: {
+      staff: mongoose.Types.ObjectId(userId)
+    }
+  })
+  await newStaff.save();
+  await Users.findByIdAndUpdate({_id: mongoose.Types.ObjectId(userId)}, {
+    $addToSet: {
+      relatedTo: mongoose.Types.ObjectId(garageId)
+    }
+  });
+  
+  logActionForAddStaff("65df5dd37a592fb6b6466ad8", "65e4961d4fbad85252fccd2f");
+
+  return res.status(200).json(dataResponse(null, 200, "Add new Staff successfully"));
 });

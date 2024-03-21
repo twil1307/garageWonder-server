@@ -46,6 +46,13 @@ const garageSchema = new Schema(
         type: {
           date: { type: Number },
           slot: { type: Number },
+          extraFee: { 
+            type: {
+              fee: {type: Number},
+              createdAt: {type: Number}
+            }
+          },
+          disabled: {type: Boolean}
         },
       },
     ],
