@@ -1,7 +1,7 @@
 import { getFirestore } from "firebase-admin/firestore";
 import dataResponse from "./dataResponse.js";
 import Notification from "../models/notification.model.js";
-import { ORDER_ACCEPTED, ORDER_REJECTED } from "../enum/notification.enum.js";
+import { NOTI_GARAGE_ORDER, NOTI_ORDER, ORDER_ACCEPTED, ORDER_REJECTED } from "../enum/notification.enum.js";
 
 // receive notificationInst as a instance of Notification() only
 export const sendNotification = async (notificationInst) => {
@@ -71,6 +71,7 @@ const convertOrderToNotification = (order, status, isSentToGarage = false, count
     notificationClone._doc.content.orderId = order._id.toString();
     notificationClone._doc.content.status = status;
     notificationClone._doc.createdAt = new Date().getTime() + count;
+    notificationClone._doc.type = isSentToGarage ? NOTI_GARAGE_ORDER : NOTI_ORDER;
     
     if (isSentToGarage) {
         notificationClone._doc.content.message = "New order is coming!!";

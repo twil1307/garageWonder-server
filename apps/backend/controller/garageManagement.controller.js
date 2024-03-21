@@ -26,7 +26,8 @@ export const getGarageOrders = catchAsync(async (req, res, next) => {
   const { garageId } = req.params;
   const { startTime, endTime, limit, cursor, sort } = req.query;
 
-  console.log(cursor);
+  console.log(req.baseUrl);
+  console.log(req.params);
 
   const limitNum = Number.parseInt(limit) || ITEMS_PER_CURSOR;
 

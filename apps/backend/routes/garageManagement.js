@@ -10,6 +10,12 @@ import {
 import { memoryStorage } from "../helper/uploadImg.js";
 var router = Router();
 
+router.get("/sth", (req, res, next) => {
+  console.log(req.params.garageId);
+
+  return res.send("hahaha");
+})
+
 router.get("/garage/:garageId", getGarageOrders);
 
 router.get("/order/:orderId", getOrderDetail);

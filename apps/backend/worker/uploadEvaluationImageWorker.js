@@ -9,6 +9,8 @@ dotenv.config();
 
 const writeFileCloud = async () => {
     try {
+
+        console.log("Uploading")
         
         const { evaluationURIs, orderId } = workerData;
 
