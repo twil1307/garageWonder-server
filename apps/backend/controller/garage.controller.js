@@ -40,6 +40,7 @@ import {
 } from "../enum/garage.enum.js";
 import Service from "../models/service.model.js";
 import Users from "../models/user.model.js";
+import { GARAGE_OWNER } from "../enum/role.enum.js";
 
 /**
  * @POST
@@ -443,6 +444,12 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
     console.log(newGarage);
 
     await newGarage.save({ session });
+
+    await Users.findByIdAndUpdate(newGarage.userId, {
+      $set: {
+        role: GARAGE_OWNER
+      }
+    })
 
     // await redisClient.del(getUserLeftMostIpAddress(ipAddress));
 
