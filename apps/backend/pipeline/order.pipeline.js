@@ -121,6 +121,24 @@ export const getGarageOrderPipeline = (
       }
     },
     {
+      $addFields: {
+        evaluationRequired: {
+          $anyElementTrue: {
+            $map: {
+              input: "$services",
+              as: "objItem",
+              in: {
+                $eq: [
+                  "$$objItem.isProvidedEvaluation",
+                  true,
+                ],
+              },
+            },
+          },
+        },
+      },
+    },
+    {
       $unwind: "$car.brand"
     },
     ...(start && end
