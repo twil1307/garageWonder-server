@@ -11,15 +11,15 @@ export const retrieveUserDataMiddleware = async (req, res, next) => {
 
         const token = authorization.replace("Bearer ", "");
 
-        // const userLoginId = await firebaseAdmin.auth().verifyIdToken(token);
+        const userLoginId = await firebaseAdmin.auth().verifyIdToken(token);
 
-        // if(!userLoginId) {
-        //     return next();
-        // }
+        if(!userLoginId) {
+            return next();
+        }
         
         const currentUser = await User.findOne({
-            // uid: userLoginId.uid
-            uid: "piuZhHzIZMhQoBrrqoygav2GyTx2"
+            uid: userLoginId.uid
+            // uid: "piuZhHzIZMhQoBrrqoygav2GyTx2"
         });
 
         console.log(currentUser);
