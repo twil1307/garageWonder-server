@@ -65,17 +65,14 @@ export const isLogin = () => {
         return res.status(400).json(dataResponse(null, 400, "Please login!"));
       }
 
-      const token = authorization.replace("Bearer ", "");
+      // const token = authorization.replace("Bearer ", "");
 
-      const userLoginId = await firebaseAdmin.auth().verifyIdToken(token);
-
-      // if(!userLoginId) {
-      //   return res.status(400).json(dataResponse(null, 400, "You are not authorized!"));
-      // }
-
+      // const userLoginId = await firebaseAdmin.auth().verifyIdToken(token);
+      
       const currentUser = await User.findOne({
-        uid: userLoginId.uid,
-        // uid: "piuZhHzIZMhQoBrrqoygav2GyTx2"
+        // uid: userLoginId.uid,
+        // uid: "Gsy1bJ6jpxZRYuICB39RgZVmXJr2"
+        uid: "bGRx5YRU3xUscPfKnZYCaU5fvgk1"
       });
 
       console.log(currentUser);

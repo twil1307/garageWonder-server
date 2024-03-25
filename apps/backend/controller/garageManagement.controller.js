@@ -99,6 +99,8 @@ export const getGarageOrders = catchAsync(async (req, res, next) => {
 export const getOrderDetail = catchAsync(async (req, res, next) => {
   const { orderId } = req.params;
 
+  console.log(getDetailOrderPipeline(orderId));
+
   const orderDetail = await Order.aggregate(getDetailOrderPipeline(orderId));
 
   return res
