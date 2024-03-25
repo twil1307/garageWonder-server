@@ -110,6 +110,7 @@ export const getOrderDetail = catchAsync(async (req, res, next) => {
 
 export const addOrderEvaluation = catchAsync(async (req, res, next) => {
   const orderEvaluation = new Evaluation(req.body);
+  console.log(orderEvaluation);
   const order = await Order.findById(orderEvaluation.orderId);
   const { garageId } = req.params;
   const { orderId } = req.body;

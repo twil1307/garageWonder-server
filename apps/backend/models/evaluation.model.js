@@ -33,6 +33,14 @@ const evaluationSchema = new Schema({
     type: Number,
     default: 0,
   },
+  services: [
+    {
+      type: {
+        serviceId: { type: mongoose.Schema.Types.ObjectId, required: false },
+        price: { type: Number, required: false },
+      },
+    },
+  ],
   estimationType: {
     type: Number,
     enum: [
