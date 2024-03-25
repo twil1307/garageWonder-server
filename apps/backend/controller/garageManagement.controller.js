@@ -219,7 +219,6 @@ export const uploadEvaluationImage = catchAsync(async (req, res, next) => {
     const garageB64 = Buffer.from(file.buffer).toString("base64");
     const garageDataURI = "data:" + file.mimetype + ";base64," + garageB64;
 
-    evaluationImageBuffer.push(garageB64);
     evaluationURIs.push(garageDataURI);
   });
 
@@ -446,4 +445,42 @@ export const getEvaluation = catchAsync(async (req, res, next) => {
   const evaluation = await Evaluation.aggregate(getEvalPipeline)
 
   return res.status(200).json(dataResponse(evaluation[0], 200, "Get evaluation successfully!!"));
+});
+
+export const uploadEvaluationImageSample = catchAsync(async (req, res, next) => {
+  if (
+    !req.files["image"] ||
+    req.files["image"].length === 0
+  ) {
+    return res
+      .status(200)
+      .json(dataResponse(null, 400, "Background image required"));
+  }
+
+  const publicPath = getWorkerPath("uploadCloudinaryWorker.js");
+
+  const imageURIs = [];
+  // Process multiple garage images
+  req.files["image"].map(async (file) => {
+    const garageB64 = Buffer.from(file.buffer).toString("base64");
+    const garageDataURI = "data:" + file.mimetype + ";base64," + garageB64;
+
+    imageURIs.push(garageDataURI);
+  });
+
+  const localUploadWorker = new Worker(publicPath, {
+    workerData: {
+      imageUris: imageURIs,
+      retry: 7,
+    },
+  });
+
+  localUploadWorker.on("message", async (data) => {
+    console.log(data);
+    console.log("upload cloud done");
+  });
+
+  return res
+    .status(200)
+    .json(dataResponse(null, 200, "Upload image successfully!"));
 });

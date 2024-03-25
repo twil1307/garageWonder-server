@@ -82,6 +82,20 @@ export const convertSingleImageToMultipleSizes = (imagesPath) => {
   return imagesInst;
 }
 
+export const getMultipleImageSize = (imagesPath = []) => {
+  const imagesInst = [];
+
+  imagesPath.forEach((image) => {
+    TOTAL_IMAGE_SIZE.forEach((size) => {
+      const pathImage = convertUrlPathWithSize(image, size.width, size.height);
+
+      imagesInst.push({url: pathImage, width: size.width, height: size.height})
+    })
+  })
+
+  return imagesInst;
+}
+
 export const saveMultipleImageWithSizeMongoose = async (imagesPath, session, garageId, isUploadLocal = false, uploadField = GARAGE_UPLOAD) => {
   try {
     console.log(imagesPath);
@@ -109,9 +123,6 @@ export const saveMultipleImageWithSizeMongoose = async (imagesPath, session, gar
     if (session) {
         insertOption.session = session;
     }
-
-    console.log(imagesInst);
-
     // bulk write
     const bulkOps = imagesInst.map(el => ({
       insertOne: {
@@ -119,14 +130,10 @@ export const saveMultipleImageWithSizeMongoose = async (imagesPath, session, gar
       }
     }));
 
-    console.log(bulkOps);
-
     const collection = dbNative.collection('images');
 
     await collection.bulkWrite(bulkOps);
-
-    // await Image.insertMany(imagesInst, insertOption);
-
+    
     console.log('Insert successfully');
 
     return imagesId;
@@ -283,7 +290,6 @@ export const getImagesDevPublicUrlIncludedAndDeleted = async (garageId) => {
 }
 
 function removeDimensionsFromURL(url) {
-  console.log(url)
   // Define the pattern to match "w_{number},h_{number}"
   var pattern = /w_\d+,h_\d+/;
 
