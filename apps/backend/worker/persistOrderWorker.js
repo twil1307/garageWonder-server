@@ -14,7 +14,7 @@ dotenv.config();
 
 setupDatabase();
 
-const sendNotification = async () => {
+const persistOrder = async () => {
   try {
     await connectFireBase();
 
@@ -84,4 +84,4 @@ const sendNotification = async () => {
   }
 };
 
-await sendNotification();
+await persistOrder();

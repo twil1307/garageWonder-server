@@ -5,7 +5,7 @@ var router = Router();
 import { retrieveUserDataMiddleware } from '../middleware/userRetrieveDataMiddleware.js';
 import { hasRole } from '../middleware/userAuthMiddleware.js'
 import { ADMIN, GARAGE_OWNER, STAFF, USER } from '../enum/role.enum.js';
-import { addGarageStaff, addOrderEvaluation, getGarageOrders, getOrderDetail, getScheduleOrderByMonth, getUserGarage, setDateSlot, uploadEvaluationImage } from '../controller/garageManagement.controller.js';
+import { addGarageStaff, addOrderEvaluation, getEvaluation, getGarageOrders, getOrderDetail, getScheduleOrderByMonth, getUserGarage, setDateSlot, uploadEvaluationImage } from '../controller/garageManagement.controller.js';
 
 // ==============================================
 router.get('/additionalService', getAdditionalService);
@@ -38,6 +38,8 @@ router.post('/',
     { name: "garageImage", maxCount: 10 }
   ]),
   createNewGarage);
+
+router.get('/evaluation/:evaluationId', getEvaluation)
 
 // management ================================
 router.get('/management/:userId', getUserGarage);

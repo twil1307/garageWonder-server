@@ -11,6 +11,13 @@ import dataResponse from "../utils/dataResponse.js";
 import { ObjectId } from "mongodb";
 import { getAuth, signInWithCustomToken } from "firebase/auth";
 import { firebaseAdmin } from "../config/firebase.js";
+import Order from "../models/order.model.js";
+import mongoose from "mongoose";
+import { Worker } from "worker_threads";
+import { getWorkerPath } from "../utils/filePath.js";
+import { FIXING } from "../enum/booking.enum.js";
+import { ACCEPTED, NOTI_EVALUATION, NOTI_TYPE_EVALUATION } from "../enum/notification.enum.js";
+import Notification from "../models/notification.model.js";
 
 export const getUser = catchAsync(async (req, res, next) => {
   const { uid } = req.params;
@@ -133,10 +140,6 @@ export const logOut = catchAsync(async (req, res, next) => {
   return res.status(200).json({ message: "Log out successfully" });
 });
 
-export const addOrRemoveFavorite = catchAsync(async (req, res, next) => {
-  return res.json(null);
-});
-
 export const updateBankAccount = catchAsync(async (req, res, next) => {});
 
 export const getUserRemainingAmount = catchAsync(async (req, res, next) => {});
@@ -146,7 +149,6 @@ export const getUserFavoriteGarage = catchAsync(async (req, res, next) => {});
 export const getUserBookingHistory = catchAsync(async (req, res, next) => {});
 
 export const getUserFirebase = catchAsync(async (req, res, next) => {
-
   const { authorization } = req.headers;
   const token = authorization.replace("Bearer ", "")
 
@@ -154,4 +156,61 @@ export const getUserFirebase = catchAsync(async (req, res, next) => {
 
   return res.status(200).json(verifiedOne);
   
+});
+
+export const evaluationUserAction = catchAsync(async (req, res, next) => {
+  const { type, evaluationId } = req.body;
+  const user = req.user;
+
+  const order = await Order.aggregate([
+    {
+      $match: {
+        evaluationId: mongoose.Types.ObjectId(evaluationId)
+      }
+    }
+  ]);
+
+  if(!user._id.equals(order[0].userId)) {
+    return res.status(401).json(dataResponse(null, 401, "You are not authorized!"));
+  }
+
+  const query = {
+    evaluationId: mongoose.Types.ObjectId(evaluationId)
+  }
+
+  const updateQuery = {
+    $set: {
+      status: FIXING
+    }
+  }
+
+  const notiSentUserContent = {
+    orderId: order[0]._id,
+    status: ACCEPTED
+  }
+
+  const sentGarageNoti = new Notification({
+    from: user._id, 
+    to: order[0].garageId, 
+    type: NOTI_EVALUATION,
+    content: notiSentUserContent,
+    hasRead: false
+  });
+
+  const publicPath = getWorkerPath("sendNotiWorker.js");
+
+  const sendNotificationWorker = new Worker(publicPath, {
+    workerData: {
+      notiType: NOTI_TYPE_EVALUATION,
+      notificationInst: JSON.stringify(sentGarageNoti),
+    },
+  });
+
+  sendNotificationWorker.on("message", async (data) => {
+    console.log(data);
+  });
+
+  await Order.findOneAndUpdate(query, updateQuery);
+
+  return res.status(200).json(dataResponse(null, 200, "Confirmed evaluation, your order will move to next step!"))
 });

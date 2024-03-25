@@ -577,3 +577,40 @@ export const getGaragesOrderModePipeline = (listGarageIds) => {
     }
   ]
 }
+
+export const getGarageDateSlotByDatePipeline = (garageId, dateSlotList) => {
+  return [
+    {
+      $match: {
+        $and: [
+          {
+            _id: mongoose.Types.ObjectId(garageId)
+          },
+        ],
+      },
+    },
+    {
+      $project: {
+        dateSlot: 1,
+      },
+    },
+    {
+      $unwind: "$dateSlot",
+    },
+    {
+      $match: {
+        "dateSlot.date": {
+          $in: dateSlotList,
+        },
+      },
+    },
+    {
+      $group: {
+        _id: "$_id",
+        dateSlot: {
+          $push: "$dateSlot",
+        },
+      },
+    },
+  ]
+}

@@ -1,11 +1,13 @@
 import { getFirestore } from "firebase-admin/firestore";
 import dataResponse from "./dataResponse.js";
 import Notification from "../models/notification.model.js";
-import { NOTI_GARAGE_ORDER, NOTI_ORDER, ORDER_ACCEPTED, ORDER_REJECTED } from "../enum/notification.enum.js";
+import { NOTI_GARAGE_ORDER, NOTI_ORDER, ACCEPTED, REJECTED } from "../enum/notification.enum.js";
+import mongoose from "mongoose";
 
 // receive notificationInst as a instance of Notification() only
-export const sendNotification = async (notificationInst) => {
+export const sendSingleNotification = async (notificationInst) => {
     try {
+        console.log(JSON.stringify(notificationInst._doc));
         const notificationSend = { ...notificationInst };
         notificationSend._doc._id = notificationInst?._id.toString();
         notificationSend._doc.content = notificationInst?.content?._id.toString();
@@ -20,6 +22,23 @@ export const sendNotification = async (notificationInst) => {
     
         return dataResponse(notificationSend._doc, 200, "Send notification successfully");
     } catch (error) {
+        console.log(error);
+        return dataResponse(null, 400, "Send notification failed");
+    }
+}
+
+// receive notificationInst as a instance of Notification() only
+export const sendEvaluationNoti = async (notificationInst) => {
+    try {
+        const fireStore = getFirestore();
+    
+        const docRef = fireStore.collection('rooms').doc('notifications');
+    
+        await docRef.collection(notificationInst.to).doc(notificationInst._id).set(notificationInst);
+    
+        return dataResponse(notificationInst, 200, "Send notification successfully");
+    } catch (error) {
+        console.log(error);
         return dataResponse(null, 400, "Send notification failed");
     }
 }
@@ -32,8 +51,8 @@ export const batchSendNotification = async (completedOrder, unCompletedOrder) =>
 
     if(completedOrder && completedOrder.length > 0) {
         completedOrder.forEach((item, index) => {
-            const sentUserNotificationData = convertOrderToNotification(item, ORDER_ACCEPTED, false, index + 1);
-            const sentGarageNotificationData = convertOrderToNotification(item, ORDER_ACCEPTED, true, index + 1);
+            const sentUserNotificationData = convertOrderToNotification(item, ACCEPTED, false, index + 1);
+            const sentGarageNotificationData = convertOrderToNotification(item, ACCEPTED, true, index + 1);
             
             const userRef = docRef.collection(item.userId.toString()).doc(sentUserNotificationData._id)
             const garageRef = docRef.collection(item.garageId.toString()).doc(sentGarageNotificationData._id)
@@ -45,7 +64,7 @@ export const batchSendNotification = async (completedOrder, unCompletedOrder) =>
 
     if(unCompletedOrder && unCompletedOrder.length > 0) {
         unCompletedOrder.forEach((item, index) => {
-            const notificationData = convertOrderToNotification(item, ORDER_REJECTED, false, index + 1);
+            const notificationData = convertOrderToNotification(item, REJECTED, false, index + 1);
             
             const userRef = docRef.collection(item.userId.toString()).doc(notificationData._id)
         
@@ -56,7 +75,7 @@ export const batchSendNotification = async (completedOrder, unCompletedOrder) =>
     batch.commit();
 };
 
-const convertOrderToNotification = (order, status, isSentToGarage = false, count = 1) => {
+export const convertOrderToNotification = (order, status, isSentToGarage = false, count = 1) => {
     const newNotification = new Notification();
     const notificationClone = {...newNotification};
 
@@ -76,7 +95,7 @@ const convertOrderToNotification = (order, status, isSentToGarage = false, count
     if (isSentToGarage) {
         notificationClone._doc.content.message = "New order is coming!!";
     } else {
-        notificationClone._doc.content.message = status === ORDER_ACCEPTED ? "Your order has been placed successfully!" : "Your order has been rejected!";
+        notificationClone._doc.content.message = status === ACCEPTED ? "Your order has been placed successfully!" : "Your order has been rejected!";
     }
 
     return notificationClone._doc;

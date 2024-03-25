@@ -24,6 +24,15 @@ import { saveMultipleImageWithSizeMongoose } from "../helper/image.helper.js";
 import Staff from "../models/staff.model.js";
 import Users from "../models/user.model.js";
 import { logActionForAddStaff } from "../utils/loggerUtil.js";
+import { dbNative } from "../config/database.js";
+import { getGarageDateSlotByDatePipeline } from "../pipeline/garage.pipeline.js";
+import {
+  mapExistedDateSlot,
+  reduceObjectArrayToObj,
+} from "../helper/garageManagement.helper.js";
+import Notification from "../models/notification.model.js";
+import { NOTI_EVALUATION, NOTI_TYPE_EVALUATION, PENDING } from "../enum/notification.enum.js";
+import { getOrderEvaluationPipeline } from "../pipeline/evaluation.pipeline.js";
 
 export const getGarageOrders = catchAsync(async (req, res, next) => {
   const { garageId } = req.params;
@@ -100,6 +109,9 @@ export const getOrderDetail = catchAsync(async (req, res, next) => {
 export const addOrderEvaluation = catchAsync(async (req, res, next) => {
   const orderEvaluation = new Evaluation(req.body);
   const order = await Order.findById(orderEvaluation.orderId);
+  const { garageId } = req.params;
+  const { orderId } = req.body;
+  orderEvaluation.createdBy = mongoose.Types.ObjectId(garageId);
 
   if (!order) {
     return res.status(400).json(dataResponse(null, 400, "Order not found!"));
@@ -117,6 +129,32 @@ export const addOrderEvaluation = catchAsync(async (req, res, next) => {
       estimateHandOffTime: orderEvaluation.estimationDuration[1],
       evaluationId: orderEvaluation._id,
     },
+  });
+
+  const notiSentUserContent = {
+    orderId: orderId,
+    status: PENDING
+  }
+
+  const sentUserNoti = new Notification({
+    from: garageId, 
+    to: order.userId, 
+    type: NOTI_EVALUATION, 
+    content: notiSentUserContent,
+    hasRead: false
+  });
+
+  const publicPath = getWorkerPath("sendNotiWorker.js");
+
+  const sendNotificationWorker = new Worker(publicPath, {
+    workerData: {
+      notiType: NOTI_TYPE_EVALUATION,
+      notificationInst: JSON.stringify(sentUserNoti),
+    },
+  });
+
+  sendNotificationWorker.on("message", async (data) => {
+    console.log(data);
   });
 
   return res
@@ -260,22 +298,24 @@ export const getUserGarage = catchAsync(async (req, res, next) => {
       },
     },
     {
-      $limit: 1
+      $limit: 1,
     },
     {
       $project: {
         _id: 1,
         name: 1,
         createdAt: 1,
-        updatedAt: 1
-      }
-    }
+        updatedAt: 1,
+      },
+    },
   ]);
 
   if (!garage[0]) {
     return res
       .status(400)
-      .json(dataResponse(null, 400, "Can't not find garage ID from this user ID!"));
+      .json(
+        dataResponse(null, 400, "Can't not find garage ID from this user ID!")
+      );
   }
 
   return res
@@ -285,31 +325,78 @@ export const getUserGarage = catchAsync(async (req, res, next) => {
 
 export const setDateSlot = catchAsync(async (req, res, next) => {
   const { garageId } = req.params;
-  const { date, slot, disabled } = req.body;
+  const data = req.body;
 
-  const query = {
-    _id: mongoose.Types.ObjectId(garageId)
-  };
+  const dateData = data.map((el) => Number.parseInt(el.date));
 
-  const update = {
-    $set: {
-      dateSlot: {
-        date: date,
-        slot: slot,
-        disabled: !disabled ? false : disabled 
-      }
+  const dateSlotDataPipeline = getGarageDateSlotByDatePipeline(
+    garageId,
+    dateData
+  );
+
+  const existedDateSlot = await Garage.aggregate(dateSlotDataPipeline);
+
+  const existedDateSlotData = mapExistedDateSlot(existedDateSlot);
+
+  // convert this array to object which key is date and value is extra fee
+  // then use it below to define the data for extraFeeCreatedAt
+  const existedDateExtraFeeObj = reduceObjectArrayToObj(existedDateSlot);
+
+  var bulkOps = data.map((item) => {
+    const itemDateNumber = Number.parseInt(item.date);
+
+    if (existedDateSlotData.includes(itemDateNumber)) {
+      return {
+        updateOne: {
+          filter: {
+            _id: mongoose.Types.ObjectId(garageId),
+          },
+          update: {
+            $set: {
+              ["dateSlot.$[elem]"]: {
+                ...item,
+                date: itemDateNumber,
+                extraFeeCreatedAt:
+                  existedDateExtraFeeObj[item.date].extraFee &&
+                  existedDateExtraFeeObj[item.date].extraFee !== item.extraFee
+                    ? new Date().getTime()
+                    : existedDateExtraFeeObj[item.date].extraFeeCreatedAt,
+              },
+            },
+          },
+          upsert: true,
+          arrayFilters: [{ "elem.date": itemDateNumber }],
+        },
+      };
+    } else {
+      return {
+        updateOne: {
+          filter: {
+            _id: mongoose.Types.ObjectId(garageId),
+          },
+          update: {
+            $addToSet: {
+              dateSlot: {
+                date: itemDateNumber,
+                slot: item.slot,
+                disabled: item.disabled,
+                extraFee: item.extraFee,
+                extraFeeCreatedAt: new Date().getTime(),
+              },
+            },
+          },
+        },
+      };
     }
-  }
+  });
 
-  const options = {
-    upsert: true
-  }
+  const collection = dbNative.collection("garages");
 
-  const garageFind = await Garage.updateOne(query, update, options);
+  await collection.bulkWrite(bulkOps);
 
   return res.status(200).json({
-    date, slot, disabled, garageId
-  })
+    message: "Upload success",
+  });
 });
 
 export const moveToStep = catchAsync(async (req, res, next) => {
@@ -322,21 +409,39 @@ export const addGarageStaff = catchAsync(async (req, res, next) => {
   const { garageId } = req.params;
   const { userId, accessibility } = req.body;
 
-  const newStaff = new Staff({garageId, userId, accessibility});
+  const newStaff = new Staff({ garageId, userId, accessibility });
 
-  await Garage.findByIdAndUpdate({_id: mongoose.Types.ObjectId(garageId)}, {
-    $addToSet: {
-      staff: mongoose.Types.ObjectId(userId)
+  await Garage.findByIdAndUpdate(
+    { _id: mongoose.Types.ObjectId(garageId) },
+    {
+      $addToSet: {
+        staff: mongoose.Types.ObjectId(userId),
+      },
     }
-  })
+  );
   await newStaff.save();
-  await Users.findByIdAndUpdate({_id: mongoose.Types.ObjectId(userId)}, {
-    $addToSet: {
-      relatedTo: mongoose.Types.ObjectId(garageId)
+  await Users.findByIdAndUpdate(
+    { _id: mongoose.Types.ObjectId(userId) },
+    {
+      $addToSet: {
+        relatedTo: mongoose.Types.ObjectId(garageId),
+      },
     }
-  });
-  
+  );
+
   logActionForAddStaff("65df5dd37a592fb6b6466ad8", "65e4961d4fbad85252fccd2f");
 
-  return res.status(200).json(dataResponse(null, 200, "Add new Staff successfully"));
+  return res
+    .status(200)
+    .json(dataResponse(null, 200, "Add new Staff successfully"));
+});
+
+export const getEvaluation = catchAsync(async (req, res, next) => {
+  const { evaluationId } = req.params;
+
+  const getEvalPipeline = getOrderEvaluationPipeline(evaluationId);
+
+  const evaluation = await Evaluation.aggregate(getEvalPipeline)
+
+  return res.status(200).json(dataResponse(evaluation[0], 200, "Get evaluation successfully!!"));
 });
