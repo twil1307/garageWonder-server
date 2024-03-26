@@ -57,11 +57,11 @@ const userSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'BankingAccount',
     },
-    relatedTo: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: 'Garage',
-      default: []
-    }
+    garageId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Garage",
+      default: undefined
+    },
  }
 );
 
