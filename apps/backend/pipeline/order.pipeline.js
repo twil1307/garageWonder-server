@@ -189,6 +189,55 @@ export const getGarageOrderPipeline = (
     {
       $unwind: "$car.brand"
     },
+    {
+      $unwind: "$services",
+    },
+    {
+      $lookup: {
+        from: "categories",
+        localField: "services.categoryId",
+        foreignField: "_id",
+        as: "services.category",
+      },
+    },
+    {
+      $unwind: "$services.category",
+    },
+    {
+      $group: {
+        _id: {
+          _id: "$_id",
+          garageId: "$garageId",
+          userId: "$userId",
+          car: "$car",
+          orderTime: "$orderTime",
+          handOverTime: "$handOverTime",
+          totalPrice: "$totalPrice",
+          status: "$status",
+          hasPaid: "$hasPaid",
+          createdAt: "$createdAt",
+          updatedAt: "$updatedAt",
+          estimateHandOffTime:
+            "$estimateHandOffTime",
+          evaluationRequired: "$evaluationRequired",
+        },
+        services: {
+          $push: "$services",
+        },
+      },
+    },
+    {
+      $replaceRoot: {
+        newRoot: {
+          $mergeObjects: [
+            "$_id",
+            {
+              services: "$services",
+            },
+          ],
+        },
+      },
+    },
     ...(start && end
       ? [
           {

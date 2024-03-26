@@ -33,6 +33,7 @@ import {
 import Notification from "../models/notification.model.js";
 import { NOTI_EVALUATION, NOTI_TYPE_EVALUATION, PENDING } from "../enum/notification.enum.js";
 import { getOrderEvaluationPipeline } from "../pipeline/evaluation.pipeline.js";
+import { COMPLETE, FIXING, PREPARE } from "../enum/booking.enum.js";
 
 export const getGarageOrders = catchAsync(async (req, res, next) => {
   const { garageId } = req.params;
@@ -110,7 +111,6 @@ export const getOrderDetail = catchAsync(async (req, res, next) => {
 
 export const addOrderEvaluation = catchAsync(async (req, res, next) => {
   const orderEvaluation = new Evaluation(req.body);
-  console.log(orderEvaluation);
   const order = await Order.findById(orderEvaluation.orderId);
   const { garageId } = req.params;
   const { orderId } = req.body;
@@ -119,12 +119,6 @@ export const addOrderEvaluation = catchAsync(async (req, res, next) => {
   if (!order) {
     return res.status(400).json(dataResponse(null, 400, "Order not found!"));
   }
-
-  // const estimateTime = estimateHandOffTime(
-  //   orderEvaluation.estimationType,
-  //   order.orderTime,
-  //   orderEvaluation.estimationDuration[1]
-  // );
 
   await orderEvaluation.save();
   await Order.findByIdAndUpdate(orderEvaluation.orderId, {
@@ -402,9 +396,28 @@ export const setDateSlot = catchAsync(async (req, res, next) => {
 });
 
 export const moveToStep = catchAsync(async (req, res, next) => {
-  const { orderId, step } = req.body;
+  const { orderId } = req.body;
+  const order = await Order.findById(orderId);
 
-  // if(step === 1)
+  const orderStatus = order.status;
+
+  if(orderStatus < PREPARE || orderStatus === FIXING) {
+    return res.status(400).json(dataResponse(null, 400, "Can not move step due to evaluation rules or acceptance problem!"))
+  }
+
+  await Order.findByIdAndUpdate({
+    _id: order._id
+  }, {
+    $set: {
+      status: order.status + 1
+    }
+  })
+  
+  return res.status(200).json(dataResponse(null, 200, "Move to next progress successfully!!"))
+});
+
+export const exportPayment = catchAsync(async (req, res, next) => {
+  
 });
 
 export const addGarageStaff = catchAsync(async (req, res, next) => {
