@@ -70,6 +70,15 @@ export const getRoomsPipeline = (user) => {
             },
           ],
         },
+        displayName: {
+          $cond: [
+            {
+              $eq: ["$garageId", mongoose.Types.ObjectId(garageId)],
+            },
+            "$user.displayName",
+            "$garage.name",
+          ],
+        }
       },
     },
     {

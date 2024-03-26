@@ -1,6 +1,10 @@
-import { io } from '../../bin/www'
+import { io } from '../../bin/www.js'
 import roomWsRouter from './room.js'
 import userWsRouter from './user.js'
 
-io.of("/room").on("connection", roomWsRouter)
-io.of("/user").on("connection", userWsRouter)
+const roomNamespace = io.of("/room");
+const userNamespace = io.of("/user");
+
+roomNamespace.on("connection", (socket) => roomWsRouter(socket, roomNamespace))
+
+userNamespace.on("connection", (socket) => userWsRouter(socket))

@@ -15,17 +15,10 @@ const participantSchema = new Schema({
     },
     default: Active
   }
-})
+}) 
 
 const roomSchema = new Schema({
-  participants: [{
-    _id: mongoose.Types.ObjectId,
-    status: {
-      type: Number,
-      default: Active,
-      enum: Status
-    }
-  }],
+  participants: [participantSchema],
   hasRead: {
     type: Boolean,
     required: true,
@@ -41,6 +34,12 @@ const roomSchema = new Schema({
 
 roomSchema.pre("save", function (next) {
   this.createdAt = new Date().getTime();
+  this.updatedAt = new Date().getTime();
+  next();
+});
+
+
+roomSchema.pre("updateOne", function (next) {
   this.updatedAt = new Date().getTime();
   next();
 });

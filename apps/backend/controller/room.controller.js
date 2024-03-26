@@ -12,13 +12,15 @@ const Active = 1;
 const Ignore = 2;
 
 export const createRoom = async (req, res, next) => {
+    const { garageId } = req.body;
     const participants = Object.values(req.body).map((id) => ({
         _id: mongoose.Types.ObjectId(id),
         status: Active
     }))
 
     const room = new Room({
-        participants
+        participants,
+        garageId: mongoose.Types.ObjectId(garageId)
     })
 
     const session = await mongoose.startSession()
@@ -37,5 +39,13 @@ export const getRooms = async (req, res, next) => {
 
     const rooms = await Room.aggregate(getRoomsPipeline(user))
 
-    return res.json(rooms)
+    return res.status(200).json(dataResponse(rooms))
+}
+
+export const muteRoom = async (req, res, next) => {
+
+}
+
+export const deleteRoom = async (req, res, next) => {
+
 }
