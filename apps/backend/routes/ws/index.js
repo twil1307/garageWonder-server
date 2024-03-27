@@ -1,4 +1,4 @@
-import { io } from '../../bin/www.js'
+import { io } from '../../bin/www'
 import roomWsRouter from './room.js'
 import userWsRouter from './user.js'
 

@@ -21,11 +21,11 @@ export const updateMessage = async (message, socket) => {
 }
 
 export const typing = (room, socket) => {
-    socket.in(room._id).emit("room:receive_typing")
+    socket.in(room.roomId).emit("room:receive_typing")
 }
 
 export const joinRoom = (room, socket) => {
-    socket.join(room._id)
+    socket.join(room.roomId)
 }
 
 export const idle = (room, socket) => {

@@ -49,6 +49,14 @@ const userSchema = new Schema(
       type: String,
       required: false
     },
+    lastActiveAt: {
+      type: Number,
+      required: false,
+    },
+    isActive: {
+      type: Boolean,
+      default: false,
+    },
     favoriteGarage: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'Garage',

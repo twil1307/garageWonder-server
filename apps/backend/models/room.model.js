@@ -1,35 +1,29 @@
 import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 
-const InActive = 0;
-const Active = 1;
-const Ignore = 2;
-export const Status = [Active, InActive, Ignore]
+export const InActive = 0;
+export const Active = 1;
+export const Ignore = 2;
+export const Status = [Active, InActive, Ignore];
 
-const participantSchema = new Schema({
-  _id: mongoose.Types.ObjectId,
+const userRoomSchema = new Schema({
+  userId: mongoose.Types.ObjectId,
+  roomId: mongoose.Types.ObjectId,
   status: {
     type: Number,
-    enum: {
-      values: Status
-    },
-    default: Active
-  }
-}) 
+    default: Active,
+    enum: Status,
+  },
+});
 
 const roomSchema = new Schema({
-  participants: [participantSchema],
-  hasRead: {
-    type: Boolean,
-    required: true,
-    default: true,
-  },
+  garageId: { type: mongoose.Types.ObjectId, required: true },
   createdAt: {
     type: Number,
   },
   updatedAt: {
     type: Number,
-  }
+  },
 });
 
 roomSchema.pre("save", function (next) {
@@ -38,11 +32,12 @@ roomSchema.pre("save", function (next) {
   next();
 });
 
-
 roomSchema.pre("updateOne", function (next) {
   this.updatedAt = new Date().getTime();
   next();
 });
+
+export const UserRoom = mongoose.model("UserRoom", userRoomSchema);
 
 const Room = mongoose.model("Rooms", roomSchema);
 

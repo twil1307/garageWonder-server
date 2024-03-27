@@ -1,8 +1,6 @@
 import { sendMessage, typing, joinRoom, idle, updateMessage } from '../../controller/ws/room.ws.js'
 
 export default function roomRouter(socket, ns) {
-    console.log(socket.id)
-
     socket.on("room:send_message", (message) => sendMessage(message, socket, ns))
 
     socket.on("room:send_update_message", (message) => updateMessage(message, socket))
