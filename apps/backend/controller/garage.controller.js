@@ -402,7 +402,7 @@ export const initialSaveGarage = catchAsync(async (req, res, next) => {
 
   return res
     .status(200)
-    .json(dataResponse(null, 200, "Initial create hotel successfully!!"));
+    .json(dataResponse(null, 200));
 });
 
 export const createInitialGarage = catchAsync(async (req, res, next) => {
@@ -454,7 +454,8 @@ export const createInitialGarage = catchAsync(async (req, res, next) => {
 
     await Users.findByIdAndUpdate(newGarage.userId, {
       $set: {
-        role: GARAGE_OWNER
+        role: GARAGE_OWNER,
+        garageId: newGarage._id
       }
     })
 

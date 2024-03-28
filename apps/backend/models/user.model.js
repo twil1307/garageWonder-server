@@ -49,6 +49,14 @@ const userSchema = new Schema(
       type: String,
       required: false
     },
+    lastActiveAt: {
+      type: Number,
+      required: false,
+    },
+    isOnline: {
+      type: Boolean,
+      default: false,
+    },
     favoriteGarage: {
       type: [mongoose.Schema.Types.ObjectId],
       ref: 'Garage',
@@ -57,11 +65,11 @@ const userSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'BankingAccount',
     },
-    relatedTo: {
-      type: [mongoose.Schema.Types.ObjectId],
-      ref: 'Garage',
-      default: []
-    }
+    garageId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Garage",
+      default: undefined
+    },
  }
 );
 

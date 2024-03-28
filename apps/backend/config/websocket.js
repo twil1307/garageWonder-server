@@ -10,30 +10,15 @@
 
 import { Server } from "socket.io";
 
-let io;
 export const socketConnection = (server) => {
-  io = new Server(server, {
+  const io = new Server(server, {
     cors: { origin: "*" }
   });
   io.on('connection', (socket) => {
-    console.info(`Client connected [id=${socket.id}]`);
-    // console.log(io);
-    // console.log(socket.request);
-    socket.on("hello", (from, msg) => {
-        console.log(from, msg);
-        socket.to("hello2")
-                .emit('someone_joined has joined');
-    })
-    socket.join(socket.request._query.id);
     socket.on('disconnect', () => {
       console.info(`Client disconnected [id=${socket.id}]`);
     });
   });
-};
 
-export const sendMessage = (roomId, key, message) => {
-    console.log(roomId);
-    io.to("hello").emit(key, message)
+  return io;
 };
-
-export const getRooms = () => io.sockets.adapter.rooms;

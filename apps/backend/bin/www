@@ -24,7 +24,7 @@ app.set('port', port);
  */
 
 export var server = http.createServer(app);
-socketConnection(server);
+export const io = socketConnection(server);
 /**
  * Listen on provided port, on all network interfaces.
  */
@@ -93,3 +93,5 @@ function onListening() {
         'pipe ' + addr :
         'port ' + addr.port;
 }
+
+import("../routes/ws/index.js")
