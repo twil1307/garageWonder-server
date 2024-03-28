@@ -16,6 +16,6 @@ router.post("", createRoom)
 router.get("", getRooms)
 router.put("", muteRoom)
 router.delete("", deleteRoom)
-router.post("/trackingActive", getRoomOnlineStatus)
+router.post("/trackingActivity", getRoomOnlineStatus)
 
 export default router;

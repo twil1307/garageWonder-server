@@ -1,8 +1,9 @@
 import { online, offline } from "../../controller/ws/user.ws.js"
 
 export default function userRouter(socket) {
-    
-    socket.on("connection", (user) => online(user, socket))
+    const userId = socket.handshake.query._id;
 
-    socket.on("disconnect", () => offline(socket))
+    socket.on("user:ping", () => online(userId))
+  
+    socket.on("disconnect", () => offline(userId))
 }

@@ -1,7 +1,8 @@
 import mongoose from "mongoose"
 import Message from "../../models/message.model.js"
+import dataResponse from "../../utils/dataResponse.js";
 
-export const sendMessage = async (message, socket, ns) => {
+export const sendMessage = async (message, socket, cb) => {
     const session = await mongoose.startSession();
     const newMessage = new Message(message);
 
@@ -12,12 +13,14 @@ export const sendMessage = async (message, socket, ns) => {
     await session.endSession()
 
     socket.in(message.roomId).emit("room:receive_message", savedMessage)
+    cb(dataResponse(savedMessage))
 }
 
-export const updateMessage = async (message, socket) => {
+export const updateMessage = async (message, socket, cb) => {
     const newMessage = await Message.findByIdAndUpdate(message._id, message, { new: true })
 
     socket.in(message.roomId).emit("room:receive_update_message", newMessage)
+    cb(dataResponse(newMessage))
 }
 
 export const typing = (room, socket) => {

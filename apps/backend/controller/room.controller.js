@@ -70,24 +70,24 @@ export const deleteRoom = async (req, res, next) => {
 
 export const getRoomOnlineStatus = async (req, res, next) => {
   const user = req.user;
-  const { garageId, userId } = req.params;
+  const { garageId, userId } = req.body;
 
   if (user?.garageId === garageId) {
     const staffs = await Users.find({ garageId: garageId })
     const isOnline = staffs.some(staff => staff.isOnline)
     const lastActiveAt = Math.max(staffs.map(staff => staff.lastActiveAt || 0))
 
-    return res.status(200).dataResponse({
+    return res.status(200).json(dataResponse({
       isOnline,
       lastActiveAt 
-    })
+    }))
   } else {
     const targetUser = await Users.findById(userId)
 
-    return res.status(200).dataResponse({
-      isOnline: targetUser.isOnline,
+    return res.status(200).json(dataResponse({
+      isOnline: Boolean(targetUser?.isOnline),
       lastActiveAt: targetUser.lastActiveAt || 0
-    })
+    }))
   }
 }
 
