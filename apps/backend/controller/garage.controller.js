@@ -41,6 +41,7 @@ import {
 import Service from "../models/service.model.js";
 import Users from "../models/user.model.js";
 import { GARAGE_OWNER } from "../enum/role.enum.js";
+import { isEmpty } from "../utils/arrayAndObjectUtils.js";
 
 /**
  * @POST
@@ -169,7 +170,13 @@ export const getGarageBasicInfo = catchAsync(async (req, res) => {
 
   const getGarageBasicInfoQuery = getGarageBasicInfoPipeline(garageId);
 
+  console.log(JSON.stringify(getGarageBasicInfoQuery));
+
   const respGarage = await Garage.aggregate(getGarageBasicInfoQuery);
+
+  if (isEmpty(respGarage[0].staff[0])) {
+    respGarage[0].staff = [];
+  }
 
   return res
     .status(200)
