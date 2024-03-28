@@ -18,6 +18,7 @@ const userRoomSchema = new Schema({
 
 const roomSchema = new Schema({
   garageId: { type: mongoose.Types.ObjectId, required: true },
+  userId: { type: mongoose.Types.ObjectId, required: true },
   createdAt: {
     type: Number,
   },

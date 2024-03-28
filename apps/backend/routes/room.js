@@ -4,7 +4,8 @@ import {
     createRoom,
     deleteRoom,
     getRooms,
-    muteRoom
+    muteRoom,
+    getRoomOnlineStatus
 } from '../controller/room.controller.js'
 
 const router = Router()
@@ -15,5 +16,6 @@ router.post("", createRoom)
 router.get("", getRooms)
 router.put("", muteRoom)
 router.delete("", deleteRoom)
+router.post("/trackingActive", getRoomOnlineStatus)
 
 export default router;

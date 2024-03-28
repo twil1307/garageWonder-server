@@ -53,7 +53,7 @@ const userSchema = new Schema(
       type: Number,
       required: false,
     },
-    isActive: {
+    isOnline: {
       type: Boolean,
       default: false,
     },
