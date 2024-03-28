@@ -15,7 +15,7 @@ router.use(retrieveUserDataMiddleware)
 router.post("", createRoom)
 router.get("", getRooms)
 router.put("", muteRoom)
-router.delete("", deleteRoom)
+router.delete("/:roomId", deleteRoom)
 router.post("/trackingActivity", getRoomOnlineStatus)
 
 export default router;
